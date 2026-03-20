@@ -1,501 +1,258 @@
-/**
- * ResumeUpload.jsx — Connected to Real Django API
- * ─────────────────────────────────────────────────
- * API Endpoints used:
- *  GET    /api/resumes/                  → list resumes
- *  POST   /api/resumes/                  → upload resume
- *  PATCH  /api/resumes/<id>/set-default/ → set as default
- *  DELETE /api/resumes/<id>/             → delete resume
- */
+import React, { useState, useRef } from 'react';
 
-import { useState, useEffect, useRef, useCallback } from "react";
-
-// ── CONFIG ─────────────────────────────────────────────────────
-const BASE_URL = "http://127.0.0.1:8000";
-
-// Gets JWT token from localStorage (stored during login)
-function authHeaders() {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  MAIN COMPONENT
-// ═══════════════════════════════════════════════════════════════
-export default function ResumeUpload() {
-  const [resumes,   setResumes]   = useState([]);
-  const [loading,   setLoading]   = useState(true);
+const ResumeUpload = () => {
+  const [file, setFile] = useState(null);
+  const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [dragOver,  setDragOver]  = useState(false);
-  const [title,     setTitle]     = useState("");
-  const [preview,   setPreview]   = useState(null);
-  const [toasts,    setToasts]    = useState([]);
-  const [error,     setError]     = useState(null);
-  const fileRef = useRef();
+  const [uploaded, setUploaded] = useState(false);
+  const fileInputRef = useRef();
 
-  // ── Toast notification ──────────────────────────────────────
-  const toast = useCallback((msg, type = "success") => {
-    const id = Date.now();
-    setToasts(t => [...t, { id, msg, type }]);
-    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
-  }, []);
+  const userName = JSON.parse(localStorage.getItem('user') || '{}')?.full_name || 'Alex Smith';
 
-  // ── FETCH all resumes from Django API ───────────────────────
-  const fetchResumes = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${BASE_URL}/api/resumes/`, {
-        headers: authHeaders(),
-      });
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      const data = await res.json();
-      setResumes(Array.isArray(data) ? data : data.results ?? []);
-    } catch (e) {
-      setError(e.message);
-      toast("Failed to load resumes", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
+  const navItems = [
+    { icon: '⊞', label: 'Dashboard', path: '/candidate-dashboard' },
+    { icon: '💼', label: 'My Jobs', path: '/jobs' },
+    { icon: '📄', label: 'Resume & Profile', path: '/resumes', active: true },
+    { icon: '⚙️', label: 'Settings', path: '/profile-settings' },
+  ];
 
-  useEffect(() => { fetchResumes(); }, [fetchResumes]);
-
-  // ── Validate file before upload ─────────────────────────────
-  const handleFileSelect = (file) => {
-    if (!file) return;
-    const allowed = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
-    if (!allowed.includes(file.type)) {
-      toast("Only PDF, DOC or DOCX files allowed", "error");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      toast("File must be under 10MB", "error");
-      return;
-    }
-    setPreview(file);
-    if (!title) setTitle(file.name.replace(/\.[^.]+$/, ""));
-  };
-
-  // ── UPLOAD resume to Django API ─────────────────────────────
-  const handleUpload = async () => {
-    if (!preview) {
-      toast("Please select a file first", "error");
-      return;
-    }
+  const handleFile = (f) => {
+    if (!f) return;
+    const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowed.includes(f.type)) { alert('Only PDF or DOCX files allowed.'); return; }
+    if (f.size > 10 * 1024 * 1024) { alert('File must be under 10MB.'); return; }
+    setFile(f);
     setUploading(true);
-    try {
-      // Use FormData for file upload — DO NOT set Content-Type manually
-      const fd = new FormData();
-      fd.append("file", preview);
-      fd.append("title", title || preview.name);
-
-      const res = await fetch(`${BASE_URL}/api/resumes/`, {
-        method: "POST",
-        headers: authHeaders(), // only Authorization, no Content-Type
-        body: fd,
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(
-          err.detail ||
-          Object.values(err).flat().join(" ") ||
-          `Upload failed (${res.status})`
-        );
-      }
-
-      const created = await res.json();
-      setResumes(p => [created, ...p]);
-      setPreview(null);
-      setTitle("");
-      if (fileRef.current) fileRef.current.value = "";
-      toast("Resume uploaded successfully! ✓");
-    } catch (e) {
-      toast(e.message, "error");
-    } finally {
-      setUploading(false);
-    }
+    setTimeout(() => { setUploading(false); setUploaded(true); }, 1500);
   };
 
-  // ── SET DEFAULT resume ──────────────────────────────────────
-  const handleSetDefault = async (id) => {
-    try {
-      const res = await fetch(`${BASE_URL}/api/resumes/${id}/set-default/`, {
-        method: "PATCH",
-        headers: authHeaders(),
-      });
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      setResumes(p => p.map(r => ({ ...r, is_default: r.id === id })));
-      toast("Set as default resume!");
-    } catch (e) {
-      toast(e.message, "error");
-    }
-  };
-
-  // ── DELETE resume ───────────────────────────────────────────
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this resume?")) return;
-    try {
-      const res = await fetch(`${BASE_URL}/api/resumes/${id}/`, {
-        method: "DELETE",
-        headers: authHeaders(),
-      });
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      setResumes(p => p.filter(r => r.id !== id));
-      toast("Resume deleted");
-    } catch (e) {
-      toast(e.message, "error");
-    }
-  };
-
-  // ── Drag & Drop handlers ────────────────────────────────────
-  const onDragOver  = (e) => { e.preventDefault(); setDragOver(true); };
-  const onDragLeave = () => setDragOver(false);
-  const onDrop      = (e) => {
+  const handleDrop = (e) => {
     e.preventDefault();
-    setDragOver(false);
-    handleFileSelect(e.dataTransfer.files[0]);
+    setDragging(false);
+    handleFile(e.dataTransfer.files[0]);
+  };
+
+  const handleUploadToServer = async () => {
+    if (!file) return;
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', file.name.replace(/\.[^/.]+$/, ''));
+      const response = await fetch('http://127.0.0.1:8000/api/resumes/', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+      if (response.ok) {
+        alert('Resume uploaded successfully!');
+        window.location.href = '/candidate-profile';
+      } else {
+        alert('Upload failed. Please try again.');
+      }
+    } catch (err) {
+      alert('Upload failed. Please try again.');
+    }
+  };
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
-    <>
-      <style>{CSS}</style>
+    <div style={{ fontFamily: "'Inter', sans-serif", minHeight: '100vh', background: '#F6F7F8', display: 'flex', flexDirection: 'column' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+        .nav-item:hover { background: #f1f5f9; }
+        .nav-link { color: #475569; text-decoration: none; font-size: 14px; font-weight: 500; }
+      `}</style>
 
-      {/* Toasts */}
-      <div className="ru-toasts">
-        {toasts.map(t => (
-          <div key={t.id} className={`ru-toast ru-toast-${t.type}`}>{t.msg}</div>
-        ))}
-      </div>
-
-      <div className="ru-page">
-
-        {/* ── Page Header ── */}
-        <div className="ru-header">
-          <div className="ru-header-left">
-            <div className="ru-header-icon">📄</div>
-            <div>
-              <h1 className="ru-title">My Resumes</h1>
-              <p className="ru-subtitle">Upload and manage resumes to send to HR</p>
-            </div>
+      {/* NAVBAR */}
+      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 160px', height: '65px', background: '#FFFFFF', borderBottom: '1px solid #E2E8F0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ background: '#137FEC', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#fff', fontSize: '14px' }}>💼</span>
           </div>
-          <div className="ru-stats">
-            <div className="ru-stat">
-              <div className="ru-stat-n">{resumes.length}</div>
-              <div className="ru-stat-l">Total</div>
-            </div>
-            <div className="ru-stat">
-              <div className="ru-stat-n">{resumes.filter(r => r.is_default).length}</div>
-              <div className="ru-stat-l">Default</div>
-            </div>
+          <span style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '-0.45px', color: '#0F172A' }}>JobPortal</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          <div style={{ display: 'flex', gap: '32px' }}>
+            <a href="/jobs" className="nav-link">Jobs</a>
+            <a href="#" className="nav-link">Applications</a>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button style={{ width: '40px', height: '40px', background: '#F1F5F9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>🔔</button>
+            <button style={{ width: '40px', height: '40px', background: '#F1F5F9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>👤</button>
+            <div style={{ width: '40px', height: '40px', background: '#E2E8F0', borderRadius: '50%', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>👤</div>
           </div>
         </div>
+      </nav>
 
-        <div className="ru-body">
+      {/* MAIN */}
+      <div style={{ flex: 1, padding: '32px 160px' }}>
+        <div style={{ display: 'flex', gap: '32px', maxWidth: '960px', margin: '0 auto' }}>
 
-          {/* ── LEFT: Upload Panel ── */}
-          <div className="ru-upload-panel">
-            <h2 className="ru-panel-title">Upload New Resume</h2>
+          {/* LEFT SIDEBAR */}
+          <div style={{ width: '256px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
-            {/* Drag & Drop Zone */}
-            <div
-              className={`ru-dropzone ${dragOver ? "drag-over" : ""} ${preview ? "has-file" : ""}`}
-              onDragOver={onDragOver}
-              onDragLeave={onDragLeave}
-              onDrop={onDrop}
-              onClick={() => !preview && fileRef.current?.click()}
-            >
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".pdf,.doc,.docx"
-                style={{ display: "none" }}
-                onChange={e => handleFileSelect(e.target.files[0])}
-              />
-              {preview ? (
-                <div className="ru-file-preview">
-                  <div className="ru-file-icon">
-                    {preview.name.endsWith(".pdf") ? "📕" : "📘"}
-                  </div>
-                  <div className="ru-file-info">
-                    <div className="ru-file-name">{preview.name}</div>
-                    <div className="ru-file-size">
-                      {(preview.size / 1024).toFixed(0)} KB
-                    </div>
-                  </div>
-                  <button
-                    className="ru-file-remove"
-                    onClick={e => {
-                      e.stopPropagation();
-                      setPreview(null);
-                      setTitle("");
-                    }}
-                  >✕</button>
-                </div>
-              ) : (
-                <>
-                  <div className="ru-drop-icon">⬆️</div>
-                  <div className="ru-drop-title">Drag & drop your resume here</div>
-                  <div className="ru-drop-sub">or click to browse files</div>
-                  <div className="ru-drop-hint">PDF, DOC, DOCX · Max 10MB</div>
-                </>
-              )}
+            {/* User Info */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', marginBottom: '8px' }}>
+              <div style={{ width: '48px', height: '48px', background: 'rgba(19,127,236,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>👤</div>
+              <div>
+                <p style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A' }}>{userName}</p>
+                <p style={{ fontSize: '12px', color: '#64748B' }}>Product Designer</p>
+              </div>
             </div>
 
-            {/* Title Input */}
-            <div className="ru-field">
-              <label className="ru-label">Resume Title</label>
-              <input
-                className="ru-input"
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                placeholder="e.g. Software Engineer Resume"
-              />
-            </div>
-
-            {/* Upload Button */}
-            <button
-              className="ru-upload-btn"
-              onClick={handleUpload}
-              disabled={!preview || uploading}
-            >
-              {uploading
-                ? <><span className="ru-spin">⟳</span> Uploading…</>
-                : "Upload Resume →"
-              }
-            </button>
-
-            {/* Tips */}
-            <div className="ru-tips">
-              <div className="ru-tips-title">💡 Tips</div>
-              <ul className="ru-tips-list">
-                <li>Use PDF format for best compatibility</li>
-                <li>Keep resume under 2 pages</li>
-                <li>Set one resume as Default for quick apply</li>
-              </ul>
-            </div>
+            {/* Nav Items */}
+            {navItems.map(item => (
+              <div key={item.label} className="nav-item"
+                style={{ background: item.active ? 'rgba(19,127,236,0.1)' : 'transparent', border: item.active ? '1px solid rgba(19,127,236,0.2)' : '1px solid transparent' }}
+                onClick={() => window.location.href = item.path}>
+                <span style={{ fontSize: '18px' }}>{item.icon}</span>
+                <span style={{ fontSize: '14px', fontWeight: item.active ? '700' : '600', color: item.active ? '#137FEC' : '#475569' }}>{item.label}</span>
+              </div>
+            ))}
           </div>
 
-          {/* ── RIGHT: Resume List ── */}
-          <div className="ru-list-panel">
-            <div className="ru-list-header">
-              <h2 className="ru-panel-title">Uploaded Resumes</h2>
-              <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-                <span className="ru-count">
-                  {resumes.length} file{resumes.length !== 1 ? "s" : ""}
-                </span>
-                <button className="ru-refresh-btn" onClick={fetchResumes}>
-                  ↻ Refresh
+          {/* RIGHT CONTENT */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+            {/* Header */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <h1 style={{ fontSize: '30px', fontWeight: '900', color: '#0F172A', letterSpacing: '-0.75px', lineHeight: '36px' }}>Upload your resume</h1>
+              <p style={{ fontSize: '18px', color: '#64748B', lineHeight: '28px' }}>We'll parse your resume to automatically build your professional profile.</p>
+            </div>
+
+            {/* Upload Card */}
+            <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '32px', boxShadow: '0px 1px 2px rgba(0,0,0,0.05)' }}>
+              <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }} onChange={e => handleFile(e.target.files[0])} />
+              <div
+                onDrop={handleDrop}
+                onDragOver={e => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)}
+                onClick={() => fileInputRef.current.click()}
+                style={{
+                  background: dragging ? 'rgba(19,127,236,0.1)' : 'rgba(19,127,236,0.05)',
+                  border: `2px dashed ${dragging ? '#137FEC' : 'rgba(19,127,236,0.3)'}`,
+                  borderRadius: '12px', padding: '48px 24px',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px',
+                  cursor: 'pointer', transition: 'all 0.2s'
+                }}>
+                {/* Upload Icon */}
+                <div style={{ width: '64px', height: '64px', background: '#FFFFFF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0px 4px 6px -1px rgba(0,0,0,0.1)', fontSize: '28px' }}>
+                  ☁️
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A', marginBottom: '4px' }}>
+                    {file ? file.name : 'Click or drag & drop to upload'}
+                  </p>
+                  <p style={{ fontSize: '14px', color: '#64748B' }}>PDF, DOCX up to 10MB</p>
+                </div>
+                <button
+                  onClick={e => { e.stopPropagation(); fileInputRef.current.click(); }}
+                  style={{ background: '#137FEC', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif", boxShadow: '0px 10px 15px -3px rgba(19,127,236,0.25)' }}>
+                  Select Resume File
                 </button>
               </div>
             </div>
 
-            {/* Loading skeletons */}
-            {loading ? (
-              <div className="ru-skels">
-                {[1,2,3].map(i => <div key={i} className="ru-skel" />)}
-              </div>
+            {/* Parsing Status + File Preview */}
+            {file && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
 
-            /* Error state */
-            ) : error ? (
-              <div className="ru-empty">
-                <div className="ru-empty-icon">⚠️</div>
-                <h3>Failed to load resumes</h3>
-                <p>{error}</p>
-                <button
-                  className="ru-upload-btn"
-                  style={{ marginTop:14 }}
-                  onClick={fetchResumes}
-                >↻ Retry</button>
-              </div>
+                {/* Parsing Status */}
+                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>Parsing Status</h2>
+                    {uploaded && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#D1FAE5', borderRadius: '9999px', padding: '4px 8px' }}>
+                        <div style={{ width: '6px', height: '6px', background: '#10B981', borderRadius: '50%' }} />
+                        <span style={{ fontSize: '12px', fontWeight: '500', color: '#047857' }}>Completed</span>
+                      </div>
+                    )}
+                    {uploading && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#FEF3C7', borderRadius: '9999px', padding: '4px 8px' }}>
+                        <div style={{ width: '6px', height: '6px', background: '#F59E0B', borderRadius: '50%' }} />
+                        <span style={{ fontSize: '12px', fontWeight: '500', color: '#92400E' }}>Processing...</span>
+                      </div>
+                    )}
+                  </div>
 
-            /* Empty state */
-            ) : resumes.length === 0 ? (
-              <div className="ru-empty">
-                <div className="ru-empty-icon">📭</div>
-                <h3>No resumes uploaded yet</h3>
-                <p>Upload your first resume using the panel on the left</p>
-              </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {[
+                      { icon: '✅', label: 'Personal Information', detail: 'Found: Name, Email, Phone', done: uploaded },
+                      { icon: '✅', label: 'Work Experience', detail: 'Extracted: 3 roles, 5 years', done: uploaded },
+                      { icon: uploading ? '🔄' : '✅', label: 'Skills & Expertise', detail: uploading ? 'Analyzing keywords...' : 'Found 12 skills', done: uploaded },
+                    ].map(item => (
+                      <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '18px', color: item.done ? '#10B981' : '#137FEC' }}>{item.done ? '✅' : (uploading ? '🔄' : '⭕')}</span>
+                        <div>
+                          <p style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>{item.label}</p>
+                          <p style={{ fontSize: '12px', color: '#64748B' }}>{item.detail}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
-            /* Resume cards */
-            ) : (
-              <div className="ru-list">
-                {resumes.map(resume => (
-                  <ResumeCard
-                    key={resume.id}
-                    resume={resume}
-                    onSetDefault={() => handleSetDefault(resume.id)}
-                    onDelete={() => handleDelete(resume.id)}
-                  />
-                ))}
+                  <div style={{ paddingTop: '16px' }}>
+                    <button style={{ width: '100%', padding: '8px 16px', border: '1px solid #E2E8F0', borderRadius: '8px', background: '#fff', fontSize: '14px', fontWeight: '700', color: '#334155', cursor: 'pointer', fontFamily: "'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      ✏️ Verify Information
+                    </button>
+                  </div>
+                </div>
+
+                {/* File Preview */}
+                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>File Preview</h2>
+                    <button onClick={() => { setFile(null); setUploaded(false); }} style={{ background: 'none', border: 'none', color: '#137FEC', fontSize: '12px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>Replace file</button>
+                  </div>
+
+                  <div style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '8px', padding: '38px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', minHeight: '200px', justifyContent: 'center' }}>
+                    <div style={{ width: '80px', height: '80px', background: 'rgba(19,127,236,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', marginBottom: '4px' }}>📄</div>
+                    <p style={{ fontSize: '14px', fontWeight: '700', color: '#0F172A', textAlign: 'center' }}>{file.name}</p>
+                    <p style={{ fontSize: '12px', color: '#64748B' }}>Uploaded just now • {formatSize(file.size)}</p>
+                  </div>
+                </div>
               </div>
             )}
-          </div>
 
-        </div>
-      </div>
-    </>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  RESUME CARD
-// ═══════════════════════════════════════════════════════════════
-function ResumeCard({ resume, onSetDefault, onDelete }) {
-  const isPDF = (resume.file || "").toLowerCase().endsWith(".pdf") ||
-                (resume.title || "").toLowerCase().includes("pdf");
-
-  function fmtDate(d) {
-    return d ? new Date(d).toLocaleDateString("en-IN", {
-      day: "numeric", month: "short", year: "numeric"
-    }) : "—";
-  }
-
-  return (
-    <div className={`ru-card ${resume.is_default ? "default" : ""}`}>
-      <div className="ru-card-left">
-        <div className="ru-card-icon">{isPDF ? "📕" : "📘"}</div>
-        <div className="ru-card-info">
-          <div className="ru-card-title">
-            {resume.title || "Resume"}
-            {resume.is_default && (
-              <span className="ru-default-badge">⭐ Default</span>
-            )}
-          </div>
-          <div className="ru-card-meta">
-            {resume.file_size && <span>{resume.file_size}</span>}
-            {resume.file_size && <span>·</span>}
-            <span>Uploaded {fmtDate(resume.created_at)}</span>
+            {/* Next Steps CTA */}
+            <div style={{ background: 'rgba(19,127,236,0.05)', border: '1px solid rgba(19,127,236,0.2)', borderRadius: '12px', padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '48px', height: '48px', background: '#FFFFFF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: '0px 1px 2px rgba(0,0,0,0.05)', flexShrink: 0 }}>✨</div>
+                <div>
+                  <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A', marginBottom: '4px' }}>Your profile is 85% complete!</h4>
+                  <p style={{ fontSize: '14px', color: '#64748B', lineHeight: '20px' }}>Finish adding your skills to attract 3x more employers.</p>
+                </div>
+              </div>
+              <button
+                onClick={file ? handleUploadToServer : () => window.location.href = '/profile-setup'}
+                style={{ background: '#137FEC', color: '#fff', border: 'none', padding: '12px 32px', borderRadius: '8px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap', height: '48px', boxShadow: '0px 10px 15px -3px rgba(19,127,236,0.2)' }}>
+                {file ? 'Upload Resume' : 'Complete Profile'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="ru-card-actions">
-        {/* View */}
-        {resume.file_url && (
-          <a
-            className="ru-action-btn"
-            href={resume.file_url}
-            target="_blank"
-            rel="noreferrer"
-          >👁 View</a>
-        )}
-        {/* Set Default */}
-        {!resume.is_default && (
-          <button className="ru-action-btn" onClick={onSetDefault}>
-            ⭐ Set Default
-          </button>
-        )}
-        {/* Delete */}
-        <button className="ru-action-btn danger" onClick={onDelete}>
-          🗑 Delete
-        </button>
-      </div>
+      {/* FOOTER */}
+      <footer style={{ background: '#FFFFFF', borderTop: '1px solid #E2E8F0', padding: '32px 160px' }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontSize: '14px', color: '#64748B' }}>© 2024 JobPortal Inc. All rights reserved.</p>
+          <div style={{ display: 'flex', gap: '24px' }}>
+            {['Privacy Policy', 'Terms of Service', 'Contact Support'].map(link => (
+              <a key={link} href="#" style={{ fontSize: '14px', color: '#64748B', textDecoration: 'none' }}>{link}</a>
+            ))}
+          </div>
+        </div>
+      </footer>
     </div>
   );
-}
+};
 
-// ═══════════════════════════════════════════════════════════════
-//  STYLES
-// ═══════════════════════════════════════════════════════════════
-const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Nunito:wght@400;500;600;700;800&display=swap');
-*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:'Nunito',sans-serif; background:#f3f5f7; color:#111827; }
-
-.ru-toasts { position:fixed; top:18px; right:18px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
-.ru-toast { padding:11px 18px; border-radius:10px; font-size:13.5px; font-weight:700; animation:toastIn .25s ease; box-shadow:0 4px 16px rgba(0,0,0,.08); }
-.ru-toast-success { background:#fff; color:#16a34a; border:1.5px solid #bbf7d0; }
-.ru-toast-error   { background:#fff; color:#dc2626; border:1.5px solid #fecaca; }
-@keyframes toastIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
-
-.ru-page { max-width:1100px; margin:0 auto; padding:32px 28px 60px; min-height:100vh; }
-.ru-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:16px; }
-.ru-header-left { display:flex; align-items:center; gap:14px; }
-.ru-header-icon { font-size:36px; }
-.ru-title { font-family:'Fraunces',serif; font-size:28px; color:#111827; letter-spacing:-.3px; }
-.ru-subtitle { font-size:13px; color:#6b7280; margin-top:3px; }
-.ru-stats { display:flex; gap:10px; }
-.ru-stat { background:#fff; border:1.5px solid #e5e7eb; border-radius:12px; padding:12px 20px; text-align:center; min-width:80px; }
-.ru-stat-n { font-family:'Fraunces',serif; font-size:22px; color:#111827; }
-.ru-stat-l { font-size:11px; color:#6b7280; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-top:2px; }
-
-.ru-body { display:flex; gap:20px; align-items:flex-start; }
-
-.ru-upload-panel { width:320px; flex-shrink:0; background:#fff; border:1.5px solid #e5e7eb; border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:18px; position:sticky; top:24px; }
-.ru-panel-title { font-family:'Fraunces',serif; font-size:18px; color:#111827; }
-
-.ru-dropzone { border:2px dashed #e5e7eb; border-radius:13px; padding:28px 20px; text-align:center; cursor:pointer; transition:all .2s; background:#f8fafc; display:flex; flex-direction:column; align-items:center; gap:8px; min-height:160px; justify-content:center; }
-.ru-dropzone:hover,.ru-dropzone.drag-over { border-color:#ff6b35; background:#fff7ed; }
-.ru-dropzone.has-file { cursor:default; border-style:solid; border-color:#ff6b35; background:#fff7ed; }
-.ru-drop-icon { font-size:32px; }
-.ru-drop-title { font-family:'Fraunces',serif; font-size:15px; color:#111827; }
-.ru-drop-sub { font-size:13px; color:#6b7280; }
-.ru-drop-hint { font-size:11.5px; color:#9ca3af; background:#fff7ed; padding:4px 12px; border-radius:20px; }
-
-.ru-file-preview { display:flex; align-items:center; gap:12px; width:100%; text-align:left; }
-.ru-file-icon { font-size:32px; flex-shrink:0; }
-.ru-file-info { flex:1; min-width:0; }
-.ru-file-name { font-size:13.5px; font-weight:700; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ru-file-size { font-size:12px; color:#6b7280; margin-top:2px; }
-.ru-file-remove { background:#fef2f2; border:none; color:#ef4444; cursor:pointer; width:26px; height:26px; border-radius:6px; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-
-.ru-field { display:flex; flex-direction:column; gap:6px; }
-.ru-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:#9ca3af; }
-.ru-input { padding:11px 13px; background:#f8fafc; border:1.5px solid #e5e7eb; border-radius:10px; font-family:'Nunito',sans-serif; font-size:13.5px; color:#111827; outline:none; transition:border-color .15s; }
-.ru-input:focus { border-color:#ff6b35; background:#fff; }
-.ru-input::placeholder { color:#cbd5e1; }
-
-.ru-upload-btn { width:100%; padding:13px; background:#ff6b35; color:#fff; border:none; border-radius:11px; cursor:pointer; font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; transition:background .15s; display:flex; align-items:center; justify-content:center; gap:8px; }
-.ru-upload-btn:hover:not(:disabled) { background:#ea580c; }
-.ru-upload-btn:disabled { background:#e8e4de; color:#bbb; cursor:not-allowed; }
-.ru-spin { display:inline-block; animation:spin .7s linear infinite; }
-@keyframes spin { to{transform:rotate(360deg)} }
-
-.ru-tips { background:#fff7ed; border:1.5px solid #fed7aa; border-radius:11px; padding:14px 16px; }
-.ru-tips-title { font-size:13px; font-weight:800; color:#7c2d12; margin-bottom:8px; }
-.ru-tips-list { list-style:none; display:flex; flex-direction:column; gap:6px; }
-.ru-tips-list li { font-size:12.5px; color:#6b7280; padding-left:14px; position:relative; }
-.ru-tips-list li::before { content:'→'; position:absolute; left:0; color:#ff6b35; }
-
-.ru-list-panel { flex:1; min-width:0; }
-.ru-list-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-.ru-count { background:#fff7ed; color:#c2410c; font-size:12px; font-weight:800; padding:3px 10px; border-radius:20px; }
-.ru-refresh-btn { background:none; border:1.5px solid #e5e7eb; padding:5px 12px; border-radius:8px; font-family:'Nunito',sans-serif; font-size:12px; font-weight:700; color:#6b7280; cursor:pointer; transition:all .15s; }
-.ru-refresh-btn:hover { border-color:#ff6b35; color:#ff6b35; }
-
-.ru-skels { display:flex; flex-direction:column; gap:10px; }
-.ru-skel { height:90px; background:linear-gradient(90deg,#f1f5f9 25%,#ffffff 50%,#f1f5f9 75%); background-size:200% 100%; border-radius:13px; animation:shimmer 1.4s infinite; }
-@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-.ru-empty { text-align:center; padding:60px 20px; color:#9ca3af; }
-.ru-empty-icon { font-size:44px; margin-bottom:12px; opacity:.4; }
-.ru-empty h3 { font-family:'Fraunces',serif; font-size:18px; color:#6b7280; margin-bottom:6px; }
-.ru-empty p { font-size:13.5px; }
-
-.ru-list { display:flex; flex-direction:column; gap:12px; }
-.ru-card { background:#fff; border:1.5px solid #e5e7eb; border-radius:14px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:14px; transition:all .2s; flex-wrap:wrap; }
-.ru-card:hover { border-color:#ff6b35; box-shadow:0 4px 18px rgba(255,107,53,.12); }
-.ru-card.default { border-color:#ff6b35; background:#fff7ed; }
-.ru-card-left { display:flex; align-items:center; gap:14px; flex:1; min-width:0; }
-.ru-card-icon { font-size:32px; flex-shrink:0; }
-.ru-card-title { font-family:'Fraunces',serif; font-size:15.5px; color:#111827; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.ru-default-badge { background:#ffedd5; color:#c2410c; font-family:'Nunito',sans-serif; font-size:11px; font-weight:800; padding:2px 9px; border-radius:20px; border:1px solid #fdba74; }
-.ru-card-meta { font-size:12px; color:#6b7280; margin-top:4px; display:flex; gap:6px; }
-.ru-card-actions { display:flex; gap:6px; flex-wrap:wrap; flex-shrink:0; }
-.ru-action-btn { padding:6px 13px; border-radius:8px; border:1.5px solid #e5e7eb; background:#f8fafc; color:#374151; font-family:'Nunito',sans-serif; font-size:12px; font-weight:700; cursor:pointer; transition:all .15s; text-decoration:none; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
-.ru-action-btn:hover { background:#fff7ed; }
-.ru-action-btn.danger { color:#ef4444; border-color:#fecaca; background:#fff; }
-.ru-action-btn.danger:hover { background:#fef2f2; }
-
-@media (max-width:860px) {
-  .ru-body { flex-direction:column; }
-  .ru-upload-panel { width:100%; position:static; }
-  .ru-card { flex-direction:column; align-items:flex-start; }
-}
-`;
+export default ResumeUpload;
