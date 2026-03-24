@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const CommunityDiscussionForum = () => {
   const [activeTab, setActiveTab] = useState('Trending');
@@ -6,62 +7,30 @@ const CommunityDiscussionForum = () => {
   const [postInput, setPostInput] = useState('');
   const [search, setSearch] = useState('');
   const [votes, setVotes] = useState({ 1: 142, 2: 89, 3: 205 });
+  const navigate = useNavigate();
 
   const tabs = ['Trending', 'Latest', 'Career Advice', 'Industry News'];
 
   const sidebarNav = [
-    { label: 'Feed', icon: '🏠' },
-    { label: 'Communities', icon: '👥' },
-    { label: 'Mentorship', icon: '🎓' },
-    { label: 'Job Board', icon: '💼' },
-    { label: 'Settings', icon: '⚙️' },
+    { label: 'Feed',        icon: '🏠', path: '/community' },
+    { label: 'Communities', icon: '👥', path: '/community' },
+    { label: 'Mentorship',  icon: '🎓', path: '/learning' },
+    { label: 'Job Board',   icon: '💼', path: '/jobs' },
+    { label: 'Settings',    icon: '⚙️', path: '/profile-settings' },
   ];
 
   const trendingTopics = ['#networking', '#engineering', '#leadership', '#careerpath', '#tech', '#remote'];
 
   const posts = [
-    {
-      id: 1,
-      author: 'Sarah Chen',
-      avatarColor: '#f0c8a0',
-      postedIn: 'Career Advice',
-      timeAgo: 'Posted 2 hours ago',
-      title: 'How to transition from IC to Engineering Manager? My experiences so far.',
-      excerpt: 'After 6 years as a Senior Software Engineer, I finally made the jump into management. It\'s been a wild ride of learning how to delegate and realizing…',
-      tags: ['#LEADERSHIP', '#ENGINEERING'],
-      comments: 24,
-      hasImage: false,
-    },
-    {
-      id: 2,
-      author: 'James Miller',
-      avatarColor: '#a0b8d0',
-      postedIn: 'Industry News',
-      timeAgo: 'Posted 5 hours ago',
-      title: 'The impact of LLMs on the SaaS landscape in 2024.',
-      excerpt: "We're seeing a massive shift in how products are being built and marketed. Integration is becoming secondary to agents...",
-      tags: ['#TECH', '#AI'],
-      comments: 56,
-      hasImage: false,
-    },
-    {
-      id: 3,
-      author: 'Elena Rodriguez',
-      avatarColor: '#c0b0e0',
-      postedIn: 'Networking',
-      timeAgo: 'Posted 8 hours ago',
-      title: 'The art of cold-messaging on LinkedIn without being annoying.',
-      excerpt: "We've all received them: the copy-paste messages that immediately go to the archive. Here is my proven framework for getting a 70% response rate...",
-      tags: ['#NETWORKING', '#CAREER'],
-      comments: 112,
-      hasImage: true,
-    },
+    { id: 1, author: 'Sarah Chen',      avatarColor: '#f0c8a0', postedIn: 'Career Advice', timeAgo: 'Posted 2 hours ago', title: 'How to transition from IC to Engineering Manager? My experiences so far.', excerpt: "After 6 years as a Senior Software Engineer, I finally made the jump into management. It's been a wild ride of learning how to delegate and realizing…", tags: ['#LEADERSHIP', '#ENGINEERING'], comments: 24,  hasImage: false },
+    { id: 2, author: 'James Miller',    avatarColor: '#a0b8d0', postedIn: 'Industry News',  timeAgo: 'Posted 5 hours ago', title: 'The impact of LLMs on the SaaS landscape in 2024.',              excerpt: "We're seeing a massive shift in how products are being built and marketed. Integration is becoming secondary to agents...",                        tags: ['#TECH', '#AI'],               comments: 56,  hasImage: false },
+    { id: 3, author: 'Elena Rodriguez', avatarColor: '#c0b0e0', postedIn: 'Networking',     timeAgo: 'Posted 8 hours ago', title: 'The art of cold-messaging on LinkedIn without being annoying.',   excerpt: "We've all received them: the copy-paste messages that immediately go to the archive. Here is my proven framework for getting a 70% response rate...", tags: ['#NETWORKING', '#CAREER'],     comments: 112, hasImage: true },
   ];
 
   const contributors = [
     { name: 'Marc Wilson', role: 'Chief Architect at Tec…', pts: '1.2k pts', avatarColor: '#4a6a8a' },
-    { name: 'Lisa Wang', role: 'Product Director', pts: '948 pts', avatarColor: '#8a6a9a' },
-    { name: 'Anita Smith', role: 'UX Lead @ Designify', pts: '821 pts', avatarColor: '#9a7a6a' },
+    { name: 'Lisa Wang',   role: 'Product Director',        pts: '948 pts',  avatarColor: '#8a6a9a' },
+    { name: 'Anita Smith', role: 'UX Lead @ Designify',     pts: '821 pts',  avatarColor: '#9a7a6a' },
   ];
 
   const Avatar = ({ color, size = 20, initials = '' }) => (
@@ -74,16 +43,13 @@ const CommunityDiscussionForum = () => {
     <div style={{ width: '100%', height: '192px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #F1F5F9', background: '#f8ede8' }}>
       <svg viewBox="0 0 518 192" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
         <rect width="518" height="192" fill="#f5e0d8"/>
-        {/* Large tropical leaf */}
         <ellipse cx="220" cy="140" rx="80" ry="100" fill="#2d5a3a" transform="rotate(-20, 220, 140)"/>
         <ellipse cx="195" cy="130" rx="65" ry="85" fill="#3a7050" transform="rotate(-15, 195, 130)"/>
         <path d="M210 60 Q240 120 200 180 Q180 140 190 100 Z" fill="#22503a" opacity="0.7"/>
-        {/* Leaf veins */}
         <path d="M205 70 Q220 120 205 175" stroke="#1a3a28" strokeWidth="1.5" fill="none" opacity="0.5"/>
         <path d="M205 100 Q230 108 250 100" stroke="#1a3a28" strokeWidth="1" fill="none" opacity="0.4"/>
         <path d="M204 115 Q228 123 248 118" stroke="#1a3a28" strokeWidth="1" fill="none" opacity="0.3"/>
         <path d="M203 130 Q225 138 244 135" stroke="#1a3a28" strokeWidth="1" fill="none" opacity="0.3"/>
-        {/* Shadow */}
         <ellipse cx="215" cy="185" rx="55" ry="8" fill="rgba(0,0,0,0.1)"/>
       </svg>
     </div>
@@ -108,27 +74,21 @@ const CommunityDiscussionForum = () => {
         .cf-tag { background: #F1F5F9; borderRadius: 6px; padding: 2px 8px; fontSize: 10px; fontWeight: 700; color: #64748B; textTransform: uppercase; }
       `}</style>
 
-      {/* ── HEADER ── */}
-      <header style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 40px', height: '65px',
-        background: '#FFFFFF', borderBottom: '1px solid #E2E8F0',
-        position: 'sticky', top: 0, zIndex: 100,
-      }}>
+      {/* HEADER */}
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 40px', height: '65px', background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '32px', height: '32px', background: '#137FEC', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M2 4h16v10a2 2 0 01-2 2H4a2 2 0 01-2-2V4z" stroke="white" strokeWidth="1.5" fill="none"/>
-                <path d="M2 4l8 6 8-6" stroke="white" strokeWidth="1.5"/>
-              </svg>
+            {/* ✅ Logo → community */}
+            <div onClick={() => navigate('/community')} style={{ width: '32px', height: '32px', background: '#137FEC', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 4h16v10a2 2 0 01-2 2H4a2 2 0 01-2-2V4z" stroke="white" strokeWidth="1.5" fill="none"/><path d="M2 4l8 6 8-6" stroke="white" strokeWidth="1.5"/></svg>
             </div>
-            <span style={{ fontWeight: '800', fontSize: '20px', color: '#0F172A', letterSpacing: '-0.5px' }}>ProForum</span>
+            <span onClick={() => navigate('/community')} style={{ fontWeight: '800', fontSize: '20px', color: '#0F172A', letterSpacing: '-0.5px', cursor: 'pointer' }}>ProForum</span>
           </div>
           <nav style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-            <a href="#" style={{ fontSize: '14px', fontWeight: '600', color: '#0F172A' }}>Home</a>
-            <a href="#" style={{ fontSize: '14px', fontWeight: '500', color: '#475569' }}>Network</a>
-            <a href="#" style={{ fontSize: '14px', fontWeight: '500', color: '#475569' }}>News</a>
+            {/* ✅ Nav links */}
+            <span onClick={() => navigate('/candidate-dashboard')} style={{ fontSize: '14px', fontWeight: '600', color: '#0F172A', cursor: 'pointer' }}>Home</span>
+            <span onClick={() => navigate('/community')}           style={{ fontSize: '14px', fontWeight: '500', color: '#475569', cursor: 'pointer' }}>Network</span>
+            <span onClick={() => navigate('/jobs')}                style={{ fontSize: '14px', fontWeight: '500', color: '#475569', cursor: 'pointer' }}>News</span>
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -136,33 +96,35 @@ const CommunityDiscussionForum = () => {
             <span style={{ padding: '0 0 0 12px', color: '#94A3B8', fontSize: '13px' }}>🔍</span>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search discussions..." style={{ border: 'none', outline: 'none', fontSize: '14px', background: 'transparent', color: '#94A3B8', width: '100%', padding: '0 12px', fontFamily: 'Inter,sans-serif' }} />
           </div>
-          <button style={{ width: '40px', height: '40px', background: '#F1F5F9', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* ✅ Bell → notifications */}
+          <button onClick={() => navigate('/notifications')} style={{ width: '40px', height: '40px', background: '#F1F5F9', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="16" height="20" viewBox="0 0 16 20" fill="none"><path d="M8 0C6.4 0 5 1.4 5 3V3.5C2.7 4.4 1 6.5 1 9V14L0 16H16L15 14V9C15 6.5 13.3 4.4 11 3.5V3C11 1.4 9.6 0 8 0ZM8 20C9.1 20 10 19.1 10 18H6C6 19.1 6.9 20 8 20Z" fill="#475569"/></svg>
           </button>
-          <Avatar color="#2d4a6a" size={40} initials="AR" />
+          {/* ✅ Avatar → profile */}
+          <div onClick={() => navigate('/candidate-profile')} style={{ cursor: 'pointer' }}>
+            <Avatar color="#2d4a6a" size={40} initials="AR" />
+          </div>
         </div>
       </header>
 
-      {/* ── MAIN LAYOUT ── */}
+      {/* MAIN LAYOUT */}
       <div style={{ display: 'flex', padding: '32px 40px', gap: '24px', maxWidth: '1280px', width: '100%' }}>
 
-        {/* ── LEFT SIDEBAR ── */}
+        {/* LEFT SIDEBAR */}
         <aside style={{ width: '256px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-          {/* User card + nav */}
           <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0px 1px 2px rgba(0,0,0,0.05)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* User info */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* ✅ User info → profile */}
+            <div onClick={() => navigate('/candidate-profile')} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
               <Avatar color="#d4a070" size={48} initials="AR" />
               <div>
                 <div style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A' }}>Alex Rivera</div>
                 <div style={{ fontSize: '12px', fontWeight: '600', color: '#137FEC', letterSpacing: '0.6px', textTransform: 'uppercase' }}>Premium Member</div>
               </div>
             </div>
-            {/* Nav */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {sidebarNav.map(item => (
-                <button key={item.label} className={`cf-nav-link${activeNav === item.label ? ' active' : ''}`} onClick={() => setActiveNav(item.label)}>
+                <button key={item.label} className={`cf-nav-link${activeNav === item.label ? ' active' : ''}`}
+                  onClick={() => { setActiveNav(item.label); navigate(item.path); }}>
                   <span style={{ fontSize: '16px', width: '20px', textAlign: 'center', flexShrink: 0 }}>{item.icon}</span>
                   <span style={{ fontSize: '14px', fontWeight: '600', color: activeNav === item.label ? '#137FEC' : '#475569' }}>{item.label}</span>
                 </button>
@@ -178,7 +140,7 @@ const CommunityDiscussionForum = () => {
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {trendingTopics.map(topic => (
-                <button key={topic} style={{ background: '#F1F5F9', border: 'none', borderRadius: '9999px', padding: '6px 12px', fontSize: '12px', fontWeight: '700', color: '#334155', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                <button key={topic} onClick={() => setActiveTab('Trending')} style={{ background: '#F1F5F9', border: 'none', borderRadius: '9999px', padding: '6px 12px', fontSize: '12px', fontWeight: '700', color: '#334155', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
                   {topic}
                 </button>
               ))}
@@ -186,18 +148,14 @@ const CommunityDiscussionForum = () => {
           </div>
         </aside>
 
-        {/* ── MAIN CONTENT ── */}
+        {/* MAIN CONTENT */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0 }}>
-
-          {/* Discussion filter tabs + post input */}
           <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0px 1px 2px rgba(0,0,0,0.05)', borderRadius: '12px', overflow: 'hidden' }}>
-            {/* Tabs */}
             <div style={{ display: 'flex', borderBottom: '1px solid #E2E8F0' }}>
               {tabs.map(tab => (
                 <button key={tab} className={`cf-tab${activeTab === tab ? ' active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</button>
               ))}
             </div>
-            {/* Post input */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px' }}>
               <Avatar color="#d4a070" size={40} initials="AR" />
               <div style={{ flex: 1 }}>
@@ -208,43 +166,37 @@ const CommunityDiscussionForum = () => {
             </div>
           </div>
 
-          {/* ── POSTS ── */}
+          {/* POSTS */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {posts.map(post => (
               <div key={post.id} className="cf-post">
                 <div style={{ display: 'flex', gap: '16px' }}>
-                  {/* Vote column */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', width: '32px', flexShrink: 0 }}>
+                    {/* ✅ Upvote */}
                     <button className="cf-vote-btn" onClick={() => setVotes(v => ({ ...v, [post.id]: v[post.id] + 1 }))}>
                       <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 7L6 1L11 7" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
                     <span style={{ fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>{votes[post.id]}</span>
+                    {/* ✅ Downvote */}
                     <button className="cf-vote-btn" onClick={() => setVotes(v => ({ ...v, [post.id]: v[post.id] - 1 }))}>
                       <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1L6 7L11 1" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
                   </div>
-
-                  {/* Content */}
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }}>
-                    {/* Author row */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Avatar color={post.avatarColor} size={20} initials={post.author[0]} />
+                      {/* ✅ Author avatar → profile */}
+                      <div onClick={() => navigate('/candidate-profile')} style={{ cursor: 'pointer' }}>
+                        <Avatar color={post.avatarColor} size={20} initials={post.author[0]} />
+                      </div>
                       <span style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{post.author}</span>
                       <span style={{ fontSize: '12px', color: '#64748B' }}>·</span>
                       <span style={{ fontSize: '12px', color: '#64748B' }}>{post.timeAgo} in</span>
-                      <span style={{ fontSize: '12px', fontWeight: '700', color: '#137FEC', cursor: 'pointer' }}>{post.postedIn}</span>
+                      {/* ✅ Category → switch tab */}
+                      <span onClick={() => setActiveTab(post.postedIn)} style={{ fontSize: '12px', fontWeight: '700', color: '#137FEC', cursor: 'pointer' }}>{post.postedIn}</span>
                     </div>
-
-                    {/* Title */}
                     <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#0F172A', lineHeight: '28px' }}>{post.title}</h2>
-
-                    {/* Image (post 3) */}
                     {post.hasImage && <PostImage />}
-
-                    {/* Excerpt */}
                     <p style={{ fontSize: '14px', color: '#475569', lineHeight: '20px' }}>{post.excerpt}</p>
-
-                    {/* Footer: tags + actions */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px' }}>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         {post.tags.map(tag => (
@@ -252,15 +204,18 @@ const CommunityDiscussionForum = () => {
                         ))}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        {/* ✅ Comments */}
                         <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
                           <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1 1h13v9H8l-4 4V10H1V1z" stroke="#64748B" strokeWidth="1.3" fill="none" strokeLinejoin="round"/></svg>
                           <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>{post.comments} Comments</span>
                         </button>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                        {/* ✅ Share */}
+                        <button onClick={() => { navigator.clipboard?.writeText(window.location.href); alert('Link copied!'); }} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
                           <svg width="14" height="15" viewBox="0 0 14 15" fill="none"><path d="M1 5L7 1L13 5V13H1V5Z" stroke="#64748B" strokeWidth="1.3" fill="none" strokeLinejoin="round"/><path d="M5 13V8H9V13" stroke="#64748B" strokeWidth="1.3" strokeLinejoin="round"/></svg>
                           <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>Share</span>
                         </button>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                        {/* ✅ Save */}
+                        <button onClick={() => alert('Post saved!')} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
                           <svg width="11" height="14" viewBox="0 0 11 14" fill="none"><path d="M1 1h9v12L5.5 9.5 1 13V1z" stroke="#64748B" strokeWidth="1.3" fill="none" strokeLinejoin="round"/></svg>
                           <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>Save</span>
                         </button>
@@ -280,17 +235,15 @@ const CommunityDiscussionForum = () => {
           </div>
         </div>
 
-        {/* ── RIGHT SIDEBAR ── */}
+        {/* RIGHT SIDEBAR */}
         <aside style={{ width: '288px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-          {/* Community Stats */}
           <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0px 1px 2px rgba(0,0,0,0.05)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <span style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A' }}>Community Stats</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '8px' }}>
               {[
                 { label: 'Total Members', value: '12.4k', dot: null },
-                { label: 'Active Now', value: '482', dot: '#22C55E' },
-                { label: 'Discussions', value: '8.1k', dot: null },
+                { label: 'Active Now',    value: '482',   dot: '#22C55E' },
+                { label: 'Discussions',   value: '8.1k',  dot: null },
               ].map(stat => (
                 <div key={stat.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '14px', color: '#64748B' }}>{stat.label}</span>
@@ -301,12 +254,8 @@ const CommunityDiscussionForum = () => {
                 </div>
               ))}
             </div>
-            <button style={{
-              width: '100%', padding: '10px 0', background: '#137FEC', border: 'none',
-              borderRadius: '8px', fontSize: '14px', fontWeight: '700', color: '#FFFFFF',
-              cursor: 'pointer', fontFamily: 'Inter,sans-serif',
-              boxShadow: '0px 4px 6px -1px rgba(19,127,236,0.2)',
-            }}>
+            {/* ✅ Create New Thread */}
+            <button onClick={() => alert('Create new thread — coming soon!')} style={{ width: '100%', padding: '10px 0', background: '#137FEC', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '700', color: '#FFFFFF', cursor: 'pointer', fontFamily: 'Inter,sans-serif', boxShadow: '0px 4px 6px -1px rgba(19,127,236,0.2)' }}>
               Create New Thread
             </button>
           </div>
@@ -316,7 +265,8 @@ const CommunityDiscussionForum = () => {
             <span style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A' }}>Top Contributors</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {contributors.map(person => (
-                <div key={person.name} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                /* ✅ Contributor → profile */
+                <div key={person.name} onClick={() => navigate('/candidate-profile')} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
                   <Avatar color={person.avatarColor} size={40} initials={person.name[0]} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '14px', fontWeight: '700', color: '#0F172A' }}>{person.name}</div>
@@ -331,8 +281,8 @@ const CommunityDiscussionForum = () => {
           {/* Footer links */}
           <div style={{ padding: '0 8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              {['About', 'Guidelines', 'Privacy', 'Terms'].map(l => (
-                <a key={l} href="#" style={{ fontSize: '12px', color: '#94A3B8' }}>{l}</a>
+              {[['About','/landing'],['Guidelines','/community'],['Privacy','/privacy'],['Terms','/platform']].map(([l,p]) => (
+                <span key={l} onClick={() => navigate(p)} style={{ fontSize: '12px', color: '#94A3B8', cursor: 'pointer' }}>{l}</span>
               ))}
             </div>
             <span style={{ fontSize: '12px', color: '#94A3B8' }}>© 2024 ProForum. All rights reserved.</span>

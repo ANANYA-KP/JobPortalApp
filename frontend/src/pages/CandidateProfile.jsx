@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const CandidateProfile = () => {
   const [activeTab, setActiveTab] = useState('Overview');
+  const navigate = useNavigate();
   const tabs = ['Overview', 'Experience', 'Education', 'Skills & Endorsements'];
 
   const skills = [
-    { name: 'Product Design', blue: true },
-    { name: 'UI/UX Strategy', blue: true },
-    { name: 'Design Systems', blue: true },
-    { name: 'Figma Mastery', blue: true },
-    { name: 'Prototyping', blue: true },
-    { name: 'User Research', blue: false },
-    { name: 'HTML/CSS', blue: false },
+    { name: 'Product Design',     blue: true  },
+    { name: 'UI/UX Strategy',     blue: true  },
+    { name: 'Design Systems',     blue: true  },
+    { name: 'Figma Mastery',      blue: true  },
+    { name: 'Prototyping',        blue: true  },
+    { name: 'User Research',      blue: false },
+    { name: 'HTML/CSS',           blue: false },
     { name: 'Interaction Design', blue: false },
-    { name: '+16 more', blue: false },
+    { name: '+16 more',           blue: false },
   ];
 
   const experiences = [
@@ -22,7 +24,7 @@ const CandidateProfile = () => {
       title: 'Senior Product Designer',
       company: 'TechFlow Systems • Full-time',
       period: 'Jan 2021 — Present (3.5 yrs)',
-      desc: 'Leading the design effort for the flagship SaaS product. Managed a team of 4 junior designers and established the company\'s first scalable design system.'
+      desc: "Leading the design effort for the flagship SaaS product. Managed a team of 4 junior designers and established the company's first scalable design system."
     },
     {
       icon: '🔗',
@@ -41,27 +43,32 @@ const CandidateProfile = () => {
         .tab-link { padding: 16px 16px 14px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; background: none; font-family: 'Inter', sans-serif; transition: color 0.2s; }
         .skill-tag-blue { background: rgba(19,127,236,0.1); border: 1px solid rgba(19,127,236,0.2); color: #137FEC; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 9999px; }
         .skill-tag-gray { background: #F1F5F9; border: 1px solid #E2E8F0; color: #475569; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 9999px; }
-        .nav-link { color: #475569; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+        .nav-link { color: #475569; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; cursor: pointer; }
         .nav-link:hover { color: #137FEC; }
       `}</style>
 
       {/* NAVBAR */}
       <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 40px', height: '65px', background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* ✅ Logo → dashboard */}
+          <div onClick={() => navigate('/candidate-dashboard')} style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <span style={{ fontSize: '28px' }}>🌐</span>
           </div>
-          <span style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '-0.45px', color: '#0F172A' }}>CareerPort</span>
+          <span onClick={() => navigate('/candidate-dashboard')} style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '-0.45px', color: '#0F172A', cursor: 'pointer' }}>CareerPort</span>
         </div>
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-          <a href="/jobs" className="nav-link">Jobs</a>
-          <a href="#" className="nav-link">Network</a>
-          <a href="/candidate-profile" style={{ color: '#137FEC', textDecoration: 'none', fontSize: '14px', fontWeight: '500' }}>Profile</a>
+          {/* ✅ Nav links */}
+          <span onClick={() => navigate('/jobs')} className="nav-link">Jobs</span>
+          <span onClick={() => navigate('/community')} className="nav-link">Network</span>
+          <span onClick={() => navigate('/candidate-profile')} style={{ color: '#137FEC', textDecoration: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>Profile</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button style={{ width: '40px', height: '40px', background: '#F1F5F9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>🔔</button>
-          <button style={{ width: '40px', height: '40px', background: '#F1F5F9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>⚙️</button>
-          <div style={{ width: '40px', height: '40px', background: 'rgba(19,127,236,0.2)', borderRadius: '50%', border: '2px solid rgba(19,127,236,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* ✅ Notification bell */}
+          <button onClick={() => navigate('/notifications')} style={{ width: '40px', height: '40px', background: '#F1F5F9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>🔔</button>
+          {/* ✅ Settings */}
+          <button onClick={() => navigate('/profile-settings')} style={{ width: '40px', height: '40px', background: '#F1F5F9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>⚙️</button>
+          {/* ✅ Avatar → settings */}
+          <div onClick={() => navigate('/profile-settings')} style={{ width: '40px', height: '40px', background: 'rgba(19,127,236,0.2)', borderRadius: '50%', border: '2px solid rgba(19,127,236,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <span style={{ fontSize: '18px' }}>👤</span>
           </div>
         </div>
@@ -76,7 +83,6 @@ const CandidateProfile = () => {
 
             {/* Profile Card */}
             <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '24px', boxShadow: '0px 1px 2px rgba(0,0,0,0.05)' }}>
-              {/* Avatar */}
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', position: 'relative' }}>
                 <div style={{ position: 'relative', width: '128px', height: '128px' }}>
                   <div style={{ width: '128px', height: '128px', background: 'linear-gradient(135deg, #e0f0ff, #c7e0ff)', borderRadius: '50%', border: '4px solid #fff', boxShadow: '0px 10px 15px -3px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '48px' }}>👤</div>
@@ -84,7 +90,6 @@ const CandidateProfile = () => {
                 </div>
               </div>
 
-              {/* Name & Title */}
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#0F172A', marginBottom: '4px' }}>Alex Rivera</h1>
                 <p style={{ fontSize: '16px', fontWeight: '500', color: '#137FEC', marginBottom: '4px' }}>Senior Product Designer</p>
@@ -94,10 +99,11 @@ const CandidateProfile = () => {
                 </div>
               </div>
 
-              {/* Buttons */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <button onClick={() => window.location.href = '/profile-setup'} style={{ width: '100%', padding: '10px', background: '#137FEC', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>Edit Profile</button>
-                <button style={{ width: '100%', padding: '10px', background: '#F1F5F9', color: '#334155', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>Download CV</button>
+                {/* ✅ Edit Profile → profile-settings */}
+                <button onClick={() => navigate('/profile-settings')} style={{ width: '100%', padding: '10px', background: '#137FEC', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>Edit Profile</button>
+                {/* ✅ Download CV → resume page */}
+                <button onClick={() => navigate('/resumes')} style={{ width: '100%', padding: '10px', background: '#F1F5F9', color: '#334155', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>Download CV</button>
               </div>
             </div>
 
@@ -106,12 +112,12 @@ const CandidateProfile = () => {
               <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A', marginBottom: '16px' }}>Quick Stats</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 {[
-                  { value: '8', label: 'YEARS EXP.' },
-                  { value: '12', label: 'PROJECTS' },
-                  { value: '24', label: 'SKILLS' },
-                  { value: '4', label: 'AWARDS' },
+                  { value: '8',  label: 'YEARS EXP.',  path: '/work-experience' },
+                  { value: '12', label: 'PROJECTS',    path: '/portfolio' },
+                  { value: '24', label: 'SKILLS',      path: '/skills' },
+                  { value: '4',  label: 'AWARDS',      path: '/certifications' },
                 ].map(stat => (
-                  <div key={stat.label} style={{ background: 'rgba(248,250,252,0.5)', border: '1px solid #F1F5F9', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                  <div key={stat.label} onClick={() => navigate(stat.path)} style={{ background: 'rgba(248,250,252,0.5)', border: '1px solid #F1F5F9', borderRadius: '8px', padding: '12px', textAlign: 'center', cursor: 'pointer' }}>
                     <p style={{ fontSize: '24px', fontWeight: '700', color: '#137FEC', marginBottom: '4px' }}>{stat.value}</p>
                     <p style={{ fontSize: '12px', fontWeight: '500', color: '#64748B', letterSpacing: '0.6px', textTransform: 'uppercase' }}>{stat.label}</p>
                   </div>
@@ -124,11 +130,12 @@ const CandidateProfile = () => {
               <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A', marginBottom: '16px' }}>Contact Info</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {[
-                  { icon: '✉️', label: 'EMAIL', value: 'alex.rivera@design.com' },
-                  { icon: '📱', label: 'PHONE', value: '+1 (555) 902-3456' },
-                  { icon: '🔗', label: 'PORTFOLIO', value: 'arivera.design', link: true },
+                  { icon: '✉️', label: 'EMAIL',     value: 'alex.rivera@design.com', link: false },
+                  { icon: '📱', label: 'PHONE',     value: '+1 (555) 902-3456',       link: false },
+                  { icon: '🔗', label: 'PORTFOLIO', value: 'arivera.design',          link: true  },
                 ].map(item => (
-                  <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: item.link ? 'pointer' : 'default' }}
+                    onClick={() => item.link && window.open('https://' + item.value, '_blank')}>
                     <div style={{ width: '36px', height: '32px', background: 'rgba(19,127,236,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>{item.icon}</div>
                     <div>
                       <p style={{ fontSize: '12px', fontWeight: '600', color: '#64748B', letterSpacing: '0.6px', textTransform: 'uppercase' }}>{item.label}</p>
@@ -145,18 +152,14 @@ const CandidateProfile = () => {
 
             {/* Tabs Card */}
             <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0px 1px 2px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-              {/* Tab Bar */}
               <div style={{ display: 'flex', borderBottom: '1px solid #E2E8F0', padding: '0 24px' }}>
                 {tabs.map(tab => (
-                  <button key={tab} className="tab-link"
-                    onClick={() => setActiveTab(tab)}
-                    style={{ color: activeTab === tab ? '#137FEC' : '#64748B', borderBottom: activeTab === tab ? '2px solid #137FEC' : '2px solid transparent', marginBottom: '-1px' }}>
+                  <button key={tab} className="tab-link" onClick={() => setActiveTab(tab)} style={{ color: activeTab === tab ? '#137FEC' : '#64748B', borderBottom: activeTab === tab ? '2px solid #137FEC' : '2px solid transparent', marginBottom: '-1px' }}>
                     {tab}
                   </button>
                 ))}
               </div>
 
-              {/* Tab Content */}
               <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
                 {/* About Me */}
@@ -175,9 +178,8 @@ const CandidateProfile = () => {
                     <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ color: '#137FEC' }}>💼</span> Work Experience
                     </h3>
-                    <button style={{ background: 'none', border: 'none', color: '#137FEC', fontSize: '14px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif", display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      + Add New
-                    </button>
+                    {/* ✅ Add New → work experience page */}
+                    <button onClick={() => navigate('/work-experience')} style={{ background: 'none', border: 'none', color: '#137FEC', fontSize: '14px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif", display: 'flex', alignItems: 'center', gap: '4px' }}>+ Add New</button>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {experiences.map((exp, i) => (
@@ -205,7 +207,8 @@ const CandidateProfile = () => {
                   <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ color: '#137FEC' }}>🎓</span> Education
                   </h3>
-                  <div style={{ display: 'flex', gap: '16px' }}>
+                  {/* ✅ Click education to go to education page */}
+                  <div onClick={() => navigate('/education')} style={{ display: 'flex', gap: '16px', cursor: 'pointer' }}>
                     <div style={{ width: '48px', height: '48px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0, marginTop: '4px' }}>🎓</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -226,7 +229,11 @@ const CandidateProfile = () => {
                   </h3>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {skills.map(skill => (
-                      <span key={skill.name} className={skill.blue ? 'skill-tag-blue' : 'skill-tag-gray'}>{skill.name}</span>
+                      /* ✅ Click skill → skill management */
+                      <span key={skill.name} className={skill.blue ? 'skill-tag-blue' : 'skill-tag-gray'}
+                        onClick={() => navigate('/skills')} style={{ cursor: 'pointer' }}>
+                        {skill.name}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -242,9 +249,8 @@ const CandidateProfile = () => {
                   <p style={{ fontSize: '14px', color: '#64748B', lineHeight: '20px' }}>Your profile is 85% complete. Completing it increases visibility to recruiters by 40%.</p>
                 </div>
               </div>
-              <button
-                onClick={() => window.location.href = '/profile-setup'}
-                style={{ background: '#137FEC', color: '#fff', border: 'none', padding: '8px 27px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap', height: '56px' }}>
+              {/* ✅ Finish Profile → profile-setup */}
+              <button onClick={() => navigate('/profile-setup')} style={{ background: '#137FEC', color: '#fff', border: 'none', padding: '8px 27px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap', height: '56px' }}>
                 Finish Profile
               </button>
             </div>

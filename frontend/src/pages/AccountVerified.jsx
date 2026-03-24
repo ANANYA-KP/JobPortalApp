@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AccountVerified = () => {
+  const navigate = useNavigate();
+
   return (
     <div style={{ fontFamily: "'Inter', sans-serif", minHeight: '100vh', background: '#F6F7F8', display: 'flex', flexDirection: 'column' }}>
       <style>{`
@@ -17,106 +20,58 @@ const AccountVerified = () => {
       `}</style>
 
       {/* NAVBAR */}
-      <nav style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '16px 160px', height: '73px',
-        background: '#F6F7F8', borderBottom: '1px solid rgba(19,127,236,0.1)'
-      }}>
+      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 160px', height: '73px', background: '#F6F7F8', borderBottom: '1px solid rgba(19,127,236,0.1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '32px', height: '32px', background: 'rgba(19,127,236,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div
+            onClick={() => navigate('/landing')}
+            style={{ width: '32px', height: '32px', background: 'rgba(19,127,236,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
             <span style={{ color: '#137FEC', fontSize: '14px' }}>🛡️</span>
           </div>
-          <span style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '-0.45px', color: '#0F172A' }}>Identity Hub</span>
+
+          <span
+            onClick={() => navigate('/landing')}
+            style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '-0.45px', color: '#0F172A', cursor: 'pointer' }}
+          >
+            Identity Hub
+          </span>
         </div>
+
         <button
-          onClick={() => window.location.href = '/welcome'}
+          onClick={() => navigate('/welcome')}
           style={{ width: '40px', height: '40px', background: 'rgba(19,127,236,0.1)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', color: '#0F172A', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >✕</button>
+        >
+          ✕
+        </button>
       </nav>
 
       {/* MAIN */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 16px' }}>
-
-        {/* Card */}
-        <div style={{
-          background: '#FFFFFF', border: '1px solid rgba(19,127,236,0.05)',
-          borderRadius: '12px', padding: '32px', width: '480px', maxWidth: '480px',
-          boxShadow: '0px 20px 25px -5px rgba(19,127,236,0.05), 0px 8px 10px -6px rgba(19,127,236,0.05)',
-          display: 'flex', flexDirection: 'column', gap: '32px'
-        }}>
+        <div style={{ background: '#FFFFFF', border: '1px solid rgba(19,127,236,0.05)', borderRadius: '12px', padding: '32px', width: '480px', maxWidth: '480px', boxShadow: '0px 20px 25px -5px rgba(19,127,236,0.05), 0px 8px 10px -6px rgba(19,127,236,0.05)', display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
           {/* Check Icon */}
           <div className="check-circle" style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
-            {/* Blur glow */}
-            <div style={{
-              position: 'absolute', width: '144px', height: '144px',
-              background: 'rgba(19,127,236,0.2)', filter: 'blur(20px)',
-              borderRadius: '50%', top: '-24px'
-            }} />
-            <div style={{
-              width: '96px', height: '96px', background: '#137FEC',
-              borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0px 10px 15px -3px rgba(19,127,236,0.3)',
-              position: 'relative', zIndex: 1
-            }}>
+            <div style={{ position: 'absolute', width: '144px', height: '144px', background: 'rgba(19,127,236,0.2)', filter: 'blur(20px)', borderRadius: '50%', top: '-24px' }} />
+            <div style={{ width: '96px', height: '96px', background: '#137FEC', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0px 10px 15px -3px rgba(19,127,236,0.3)', position: 'relative', zIndex: 1 }}>
               <span style={{ color: '#fff', fontSize: '40px', fontWeight: '900' }}>✓</span>
             </div>
           </div>
 
-          {/* Title & Description */}
+          {/* Title */}
           <div className="card-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <h1 style={{ fontSize: '30px', fontWeight: '900', color: '#0F172A', letterSpacing: '-0.75px', lineHeight: '38px' }}>
-              Account Verified!
-            </h1>
-            <p style={{ fontSize: '16px', color: '#64748B', lineHeight: '26px' }}>
+            <h1 style={{ fontSize: '30px', fontWeight: '900', color: '#0F172A' }}>Account Verified!</h1>
+            <p style={{ fontSize: '16px', color: '#64748B' }}>
               Your identity has been successfully confirmed. You now have full access to all premium features and secure transactions.
             </p>
           </div>
 
-          {/* Security Banner */}
-          <div style={{
-            border: '1px solid rgba(19,127,236,0.1)', borderRadius: '12px',
-            height: '232px', position: 'relative', overflow: 'hidden',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            {/* Gradient background */}
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: 'linear-gradient(135deg, rgba(19,127,236,0.2) 0%, rgba(19,127,236,0.05) 100%)'
-            }} />
-            {/* Decorative circles */}
-            {[200, 280, 360].map((size, i) => (
-              <div key={i} style={{
-                position: 'absolute', width: `${size}px`, height: `${size}px`,
-                border: '1px solid rgba(19,127,236,0.15)', borderRadius: '50%',
-                top: '50%', left: '50%', transform: 'translate(-50%, -50%)'
-              }} />
-            ))}
-            {/* Shield icon */}
-            <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-              <div style={{ fontSize: '64px', marginBottom: '16px' }}>🛡️</div>
-            </div>
-            {/* Secure Protocol Badge */}
-            <div style={{
-              position: 'absolute', bottom: '20px',
-              background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)',
-              border: '1px solid rgba(19,127,236,0.2)', borderRadius: '9999px',
-              padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px',
-              boxShadow: '0px 1px 2px rgba(0,0,0,0.05)'
-            }}>
-              <span style={{ fontSize: '12px', color: '#137FEC' }}>🔒</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#475569', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                Secure Protocol Active
-              </span>
-            </div>
-          </div>
-
           {/* Buttons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <button className="btn-primary" onClick={() => window.location.href = '/candidate-dashboard'}>
+            <button className="btn-primary" onClick={() => navigate('/candidate-dashboard')}>
               Get Started →
             </button>
-            <button className="btn-secondary" onClick={() => window.location.href = '/candidate-profile'}>
+
+            <button className="btn-secondary" onClick={() => navigate('/candidate-profile')}>
               View Profile
             </button>
           </div>
@@ -125,9 +80,12 @@ const AccountVerified = () => {
           <div style={{ borderTop: '1px solid rgba(19,127,236,0.05)', paddingTop: '32px', textAlign: 'center' }}>
             <p style={{ fontSize: '14px', color: '#94A3B8' }}>
               Need help?{' '}
-              <a href="#" style={{ color: '#137FEC', fontWeight: '600', textDecoration: 'none' }}>Contact Support</a>
+              <span onClick={() => navigate('/admin/support')} style={{ color: '#137FEC', fontWeight: '600', cursor: 'pointer' }}>
+                Contact Support
+              </span>
             </p>
           </div>
+
         </div>
       </div>
 

@@ -1,30 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const campaigns = [
-  {
-    id: 1,
-    iconBg: 'rgba(19,127,236,0.1)', iconColor: '#137FEC', icon: '📢',
-    title: 'Fall 2024 Hiring Event Announcement',
-    meta: ['✉ Email + Push', '👥 Employers (3.2k)', '🕐 Sent 2 days ago'],
-    statusLabel: 'Completed', statusBg: '#DCFCE7', statusColor: '#166534',
-    metricLabel: '18.4% CTR', metricBold: true,
-  },
-  {
-    id: 2,
-    iconBg: '#FFEDD5', iconColor: '#EA580C', icon: '🕐',
-    title: 'System Maintenance Alert',
-    meta: ['📋 Banner', '👥 All users (450k)', '📅 Oct 15, 03:00 AM'],
-    statusLabel: 'Scheduled', statusBg: '#DBEAFE', statusColor: '#1E40AF',
-    metricLabel: 'Pending', metricBold: false,
-  },
-  {
-    id: 3,
-    iconBg: 'rgba(19,127,236,0.1)', iconColor: '#137FEC', icon: '📱',
-    title: 'Job Matches Daily Digest',
-    meta: ['🔔 Push Only', '👥 Active Candidates (120k)', '🔄 Daily Recurring'],
-    statusLabel: 'Active', statusBg: 'rgba(19,127,236,0.1)', statusColor: '#137FEC',
-    metricLabel: '32.1% Open', metricBold: true,
-  },
+  { id: 1, iconBg: 'rgba(19,127,236,0.1)', iconColor: '#137FEC', icon: '📢', title: 'Fall 2024 Hiring Event Announcement', meta: ['✉ Email + Push', '👥 Employers (3.2k)', '🕐 Sent 2 days ago'], statusLabel: 'Completed', statusBg: '#DCFCE7', statusColor: '#166534', metricLabel: '18.4% CTR', metricBold: true },
+  { id: 2, iconBg: '#FFEDD5', iconColor: '#EA580C', icon: '🕐', title: 'System Maintenance Alert', meta: ['📋 Banner', '👥 All users (450k)', '📅 Oct 15, 03:00 AM'], statusLabel: 'Scheduled', statusBg: '#DBEAFE', statusColor: '#1E40AF', metricLabel: 'Pending', metricBold: false },
+  { id: 3, iconBg: 'rgba(19,127,236,0.1)', iconColor: '#137FEC', icon: '📱', title: 'Job Matches Daily Digest', meta: ['🔔 Push Only', '👥 Active Candidates (120k)', '🔄 Daily Recurring'], statusLabel: 'Active', statusBg: 'rgba(19,127,236,0.1)', statusColor: '#137FEC', metricLabel: '32.1% Open', metricBold: true },
 ];
 
 const segments = [
@@ -34,31 +14,25 @@ const segments = [
 ];
 
 const channels = [
-  { icon: '✉️', label: 'Email Blast', enabled: true },
-  { icon: '🔔', label: 'Push Notification', enabled: true },
-  { icon: '💬', label: 'SMS Message', enabled: false },
+  { icon: '✉️', label: 'Email Blast',       enabled: true  },
+  { icon: '🔔', label: 'Push Notification', enabled: true  },
+  { icon: '💬', label: 'SMS Message',       enabled: false },
 ];
 
 const navItems = [
-  { icon: '⊞', label: 'Dashboard' },
-  { icon: '📄', label: 'Job Postings' },
-  { icon: '👥', label: 'Candidates' },
-  { icon: '🔔', label: 'Notifications', active: true },
-  { icon: '📊', label: 'Analytics' },
-  { icon: '⚙️', label: 'System Settings' },
+  { icon: '⊞', label: 'Dashboard',            path: '/admin/dashboard' },
+  { icon: '📄', label: 'Job Postings',         path: '/employer/manage-jobs' },
+  { icon: '👥', label: 'Candidates',           path: '/admin/users' },
+  { icon: '🔔', label: 'Notifications',        path: '/admin/notifications', active: true },
+  { icon: '📊', label: 'Analytics',            path: '/employer/analytics' },
+  { icon: '⚙️', label: 'System Settings',      path: '/admin/settings' },
 ];
 
 const tabs = ['All Campaigns', 'Templates', 'User Segments', 'Scheduled'];
 
 const SmallToggle = ({ enabled }) => (
-  <div style={{
-    width: 32, height: 18, background: enabled ? '#137FEC' : '#CBD5E1',
-    borderRadius: 9999, position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 0.2s',
-  }}>
-    <div style={{
-      position: 'absolute', top: 4, right: enabled ? 4 : undefined, left: enabled ? undefined : 4,
-      width: 10, height: 10, background: '#FFFFFF', borderRadius: '50%',
-    }} />
+  <div style={{ width: 32, height: 18, background: enabled ? '#137FEC' : '#CBD5E1', borderRadius: 9999, position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 0.2s' }}>
+    <div style={{ position: 'absolute', top: 4, right: enabled ? 4 : undefined, left: enabled ? undefined : 4, width: 10, height: 10, background: '#FFFFFF', borderRadius: '50%' }} />
   </div>
 );
 
@@ -66,6 +40,7 @@ const AdminNotificationsManagement = () => {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('All Campaigns');
   const [checkedSegments, setCheckedSegments] = useState([]);
+  const navigate = useNavigate();
 
   const toggleSegment = (i) => setCheckedSegments(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]);
 
@@ -96,27 +71,25 @@ const AdminNotificationsManagement = () => {
         .custom-seg-btn:hover { text-decoration: underline; }
       `}</style>
 
-      {/* ── LEFT SIDEBAR ── */}
+      {/* LEFT SIDEBAR */}
       <aside style={{ width: 240, background: '#FFFFFF', borderRight: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+        {/* ✅ Logo → admin dashboard */}
+        <div onClick={() => navigate('/admin/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, cursor: 'pointer' }}>
           <div style={{ width: 36, height: 35, background: '#137FEC', borderRadius: 8, padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>🛡️</div>
           <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '-0.5px', color: '#0F172A' }}>Admin Portal</span>
         </div>
-
-        {/* Nav */}
         <nav style={{ flex: 1, padding: '0 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {navItems.map(item => (
-            <button key={item.label} className={`nav-item${item.active ? ' active' : ''}`}>
+            /* ✅ Sidebar nav → navigate */
+            <button key={item.label} className={`nav-item${item.active ? ' active' : ''}`} onClick={() => navigate(item.path)}>
               <span style={{ fontSize: 16 }}>{item.icon}</span>
               {item.label}
             </button>
           ))}
         </nav>
-
-        {/* User */}
+        {/* ✅ User → employer profile */}
         <div style={{ borderTop: '1px solid #E2E8F0', padding: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 8, borderRadius: 8 }}>
+          <div onClick={() => navigate('/employer/profile')} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 8, borderRadius: 8, cursor: 'pointer' }}>
             <div style={{ width: 40, height: 40, background: 'rgba(19,127,236,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>👩</div>
             <div>
               <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>Sarah Johnson</p>
@@ -126,41 +99,39 @@ const AdminNotificationsManagement = () => {
         </div>
       </aside>
 
-      {/* ── MAIN CONTENT ── */}
+      {/* MAIN CONTENT */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-
-        {/* Top bar */}
         <header style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0 32px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ position: 'relative', flex: 1, maxWidth: 700 }}>
             <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: '#94A3B8' }}>🔍</span>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search campaigns, templates or users..." style={{ width: '100%', height: 36, padding: '0 16px 0 40px', background: '#F1F5F9', border: 'none', borderRadius: 8, fontSize: 14 }} />
           </div>
           <div style={{ display: 'flex', gap: 16, marginLeft: 16 }}>
-            <button style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>✉️
+            {/* ✅ Mail → messages */}
+            <button onClick={() => navigate('/employer/chat/1')} style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>✉️
               <div style={{ position: 'absolute', top: 2, right: 2, width: 8, height: 8, background: '#EF4444', borderRadius: '50%' }} />
             </button>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>❓</button>
+            {/* ✅ Help → support */}
+            <button onClick={() => navigate('/admin/support')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>❓</button>
           </div>
         </header>
 
-        {/* Page content */}
         <main style={{ padding: 32, overflowY: 'auto', flex: 1 }}>
-
-          {/* Page header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <h1 style={{ fontSize: 30, fontWeight: 900, color: '#0F172A', letterSpacing: '-0.75px' }}>Notifications Management</h1>
               <p style={{ fontSize: 16, color: '#64748B' }}>Design and deploy multi-channel communication strategies.</p>
             </div>
-            <button className="btn-create">+ Create Campaign</button>
+            {/* ✅ Create Campaign */}
+            <button className="btn-create" onClick={() => alert('Create campaign — coming soon!')}>+ Create Campaign</button>
           </div>
 
           {/* KPI Stats */}
           <div style={{ display: 'flex', gap: 24, marginBottom: 32 }}>
             {[
               { label: 'Total Sent (Monthly)', value: '1,284,502', badge: '+12.4%', badgeColor: '#22C55E', barColor: '#137FEC', barPct: 75 },
-              { label: 'Avg. Delivery Rate', value: '99.2%', badge: 'Steady', badgeColor: '#94A3B8', barColor: '#22C55E', barPct: 99 },
-              { label: 'Engagement (CTR)', value: '24.5%', badge: '-2.1%', badgeColor: '#EF4444', barColor: '#F97316', barPct: 24 },
+              { label: 'Avg. Delivery Rate',   value: '99.2%',     badge: 'Steady', badgeColor: '#94A3B8', barColor: '#22C55E', barPct: 99 },
+              { label: 'Engagement (CTR)',     value: '24.5%',     badge: '-2.1%',  badgeColor: '#EF4444', barColor: '#F97316', barPct: 24 },
             ].map((kpi, i) => (
               <div key={i} style={{ flex: 1, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: 24, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <p style={{ fontSize: 14, fontWeight: 500, color: '#64748B' }}>{kpi.label}</p>
@@ -182,30 +153,25 @@ const AdminNotificationsManagement = () => {
             ))}
           </div>
 
-          {/* Main layout */}
           <div style={{ display: 'flex', gap: 24 }}>
-
             {/* Campaigns List */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, overflow: 'hidden' }}>
-                {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #E2E8F0' }}>
                   <p style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Recent Campaigns</p>
-                  <button className="view-all-btn">View All</button>
+                  {/* ✅ View All */}
+                  <button className="view-all-btn" onClick={() => setActiveTab('All Campaigns')}>View All</button>
                 </div>
-
-                {/* Campaign items */}
                 <div>
                   {campaigns.map(c => (
-                    <div key={c.id} className="campaign-item">
+                    /* ✅ Campaign → detail */
+                    <div key={c.id} className="campaign-item" onClick={() => alert(`Campaign: ${c.title}`)}>
                       <div style={{ display: 'flex', gap: 16, flex: 1, minWidth: 0 }}>
                         <div style={{ width: 40, height: 40, background: c.iconBg, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{c.icon}</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 4 }}>{c.title}</p>
                           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                            {c.meta.map((m, i) => (
-                              <span key={i} style={{ fontSize: 12, color: '#64748B' }}>{m}</span>
-                            ))}
+                            {c.meta.map((m, i) => (<span key={i} style={{ fontSize: 12, color: '#64748B' }}>{m}</span>))}
                           </div>
                         </div>
                       </div>
@@ -221,19 +187,13 @@ const AdminNotificationsManagement = () => {
 
             {/* Right panel */}
             <div style={{ width: 290, display: 'flex', flexDirection: 'column', gap: 20, flexShrink: 0 }}>
-
               {/* Target Segments */}
               <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <p style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Target Segments</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {segments.map((seg, i) => (
                     <div key={i} className="segment-row" onClick={() => toggleSegment(i)}>
-                      <input
-                        type="checkbox"
-                        checked={checkedSegments.includes(i)}
-                        onChange={() => toggleSegment(i)}
-                        style={{ width: 16, height: 16, accentColor: '#137FEC', cursor: 'pointer', flexShrink: 0 }}
-                      />
+                      <input type="checkbox" checked={checkedSegments.includes(i)} onChange={() => toggleSegment(i)} style={{ width: 16, height: 16, accentColor: '#137FEC', cursor: 'pointer', flexShrink: 0 }} />
                       <div>
                         <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>{seg.label}</p>
                         <p style={{ fontSize: 12, color: '#64748B' }}>{seg.sub}</p>
@@ -242,7 +202,8 @@ const AdminNotificationsManagement = () => {
                   ))}
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <button className="custom-seg-btn">Create Custom Segment</button>
+                  {/* ✅ Create Custom Segment */}
+                  <button className="custom-seg-btn" onClick={() => alert('Create custom segment — coming soon!')}>Create Custom Segment</button>
                 </div>
               </div>
 
@@ -264,7 +225,7 @@ const AdminNotificationsManagement = () => {
             </div>
           </div>
 
-          {/* Global Engagement Map placeholder */}
+          {/* Global Engagement Map */}
           <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, marginTop: 24, overflow: 'hidden' }}>
             <div style={{ padding: 24, borderBottom: '1px solid #E2E8F0' }}>
               <p style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 4 }}>Global Engagement Map</p>
@@ -273,11 +234,7 @@ const AdminNotificationsManagement = () => {
             <div style={{ background: '#F1F5F9', height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
               <div style={{ fontSize: 40, opacity: 0.4 }}>🌍</div>
               <div style={{ display: 'flex', gap: 12 }}>
-                {[
-                  { color: '#22C55E', label: 'High Engagement' },
-                  { color: '#137FEC', label: 'Mid Engagement' },
-                  { color: '#F97316', label: 'Low Engagement' },
-                ].map(legend => (
+                {[{ color: '#22C55E', label: 'High Engagement' }, { color: '#137FEC', label: 'Mid Engagement' }, { color: '#F97316', label: 'Low Engagement' }].map(legend => (
                   <div key={legend.label} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 9999, padding: '5px 12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: legend.color, flexShrink: 0 }} />
                     <span style={{ fontSize: 12, color: '#0F172A' }}>{legend.label}</span>

@@ -1,62 +1,32 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ResumeSelection = () => {
   const [selectedResume, setSelectedResume] = useState(1);
   const [dragOver, setDragOver] = useState(false);
+  const navigate = useNavigate();
 
   const resumes = [
-    {
-      id: 1,
-      name: 'Senior_Product_Designer_2024.pdf',
-      updated: 'Last updated Feb 12, 2024 • 1.2 MB',
-      tags: ['📄 PDF', '🌐 English'],
-    },
-    {
-      id: 2,
-      name: 'Visual_Designer_General.pdf',
-      updated: 'Last updated Nov 05, 2023 • 940 KB',
-      tags: [],
-    },
+    { id: 1, name: 'Senior_Product_Designer_2024.pdf', updated: 'Last updated Feb 12, 2024 • 1.2 MB', tags: ['📄 PDF', '🌐 English'] },
+    { id: 2, name: 'Visual_Designer_General.pdf',      updated: 'Last updated Nov 05, 2023 • 940 KB',  tags: [] },
   ];
 
   const steps = [
     { label: 'PERSONAL', idx: 0 },
-    { label: 'RESUME', idx: 1 },
-    { label: 'PORTFOLIO', idx: 2 },
-    { label: 'REVIEW', idx: 3 },
+    { label: 'RESUME',   idx: 1 },
+    { label: 'PORTFOLIO',idx: 2 },
+    { label: 'REVIEW',   idx: 3 },
   ];
 
   const ResumePreview = ({ selected }) => (
-    <div style={{
-      width: selected ? 120 : 90,
-      height: selected ? 160 : 120,
-      flexShrink: 0,
-      background: 'linear-gradient(145deg, #e8d5c0 0%, #d4b896 40%, #c9a87a 100%)',
-      border: '1px solid #E2E8F0',
-      borderRadius: '8px',
-      overflow: 'hidden',
-      position: 'relative',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '8px 6px',
-      gap: '4px',
-    }}>
-      {/* Simulated resume content lines */}
+    <div style={{ width: selected ? 120 : 90, height: selected ? 160 : 120, flexShrink: 0, background: 'linear-gradient(145deg, #e8d5c0 0%, #d4b896 40%, #c9a87a 100%)', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column', padding: '8px 6px', gap: '4px' }}>
       <div style={{ width: '60%', height: '6px', background: 'rgba(255,255,255,0.7)', borderRadius: 2 }} />
       <div style={{ width: '40%', height: '4px', background: 'rgba(255,255,255,0.5)', borderRadius: 2 }} />
       <div style={{ height: '1px', background: 'rgba(255,255,255,0.3)', margin: '2px 0' }} />
-      {[70, 85, 60, 75, 55, 80].map((w, i) => (
-        <div key={i} style={{ width: `${w}%`, height: '3px', background: 'rgba(255,255,255,0.45)', borderRadius: 2 }} />
-      ))}
+      {[70, 85, 60, 75, 55, 80].map((w, i) => (<div key={i} style={{ width: `${w}%`, height: '3px', background: 'rgba(255,255,255,0.45)', borderRadius: 2 }} />))}
       <div style={{ height: '1px', background: 'rgba(255,255,255,0.3)', margin: '2px 0' }} />
-      {[65, 90, 50].map((w, i) => (
-        <div key={i} style={{ width: `${w}%`, height: '3px', background: 'rgba(255,255,255,0.4)', borderRadius: 2 }} />
-      ))}
-      <div style={{
-        position: 'absolute', top: '6px', left: '6px',
-        fontSize: '7px', fontWeight: 700, color: 'rgba(100,60,20,0.7)',
-        letterSpacing: '0.5px', textTransform: 'uppercase',
-      }}>Resume</div>
+      {[65, 90, 50].map((w, i) => (<div key={i} style={{ width: `${w}%`, height: '3px', background: 'rgba(255,255,255,0.4)', borderRadius: 2 }} />))}
+      <div style={{ position: 'absolute', top: '6px', left: '6px', fontSize: '7px', fontWeight: 700, color: 'rgba(100,60,20,0.7)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Resume</div>
     </div>
   );
 
@@ -84,35 +54,16 @@ const ResumeSelection = () => {
       `}</style>
 
       {/* HEADER */}
-      <header style={{
-        background: '#FFFFFF',
-        borderBottom: '1px solid #E2E8F0',
-        padding: '16px 80px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        flexShrink: 0,
-      }}>
+      <header style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '16px 80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: 40, height: 40,
-            background: 'rgba(19,127,236,0.1)', borderRadius: '8px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '18px',
-          }}>💼</div>
+          <div style={{ width: 40, height: 40, background: 'rgba(19,127,236,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>💼</div>
           <div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', lineHeight: '22px' }}>
-              Apply for Senior Designer
-            </div>
-            <div style={{ fontSize: '12px', color: '#64748B', lineHeight: '16px' }}>
-              Job Ref: #10924-SD
-            </div>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', lineHeight: '22px' }}>Apply for Senior Designer</div>
+            <div style={{ fontSize: '12px', color: '#64748B', lineHeight: '16px' }}>Job Ref: #10924-SD</div>
           </div>
         </div>
-        <button style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          fontSize: '18px', color: '#475569', width: 40, height: 40,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          borderRadius: '50%',
-        }}>✕</button>
+        {/* ✅ Close → back to jobs */}
+        <button onClick={() => navigate('/jobs')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#475569', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>✕</button>
       </header>
 
       {/* MAIN */}
@@ -121,113 +72,62 @@ const ResumeSelection = () => {
 
           {/* PROGRESS STEPPER */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '48px' }}>
-            {/* Step label row */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '14px', fontWeight: 600, color: '#137FEC' }}>Step 2 of 4</span>
               <span style={{ fontSize: '14px', fontWeight: 500, color: '#64748B' }}>50% Complete</span>
             </div>
-
-            {/* Progress bar */}
             <div style={{ position: 'relative', height: 10, background: '#E2E8F0', borderRadius: '9999px', overflow: 'hidden' }}>
-              <div style={{
-                position: 'absolute', left: 0, top: 0, bottom: 0,
-                width: '50%', background: '#137FEC', borderRadius: '9999px',
-              }} />
+              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '50%', background: '#137FEC', borderRadius: '9999px' }} />
             </div>
-
-            {/* Step labels */}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               {steps.map((step) => (
-                <span key={step.label} style={{
-                  fontSize: '10px', fontWeight: 700,
-                  letterSpacing: '0.5px', textTransform: 'uppercase',
-                  color: step.idx === 1 ? '#137FEC' : '#64748B',
-                  opacity: step.idx === 1 ? 1 : 0.5,
-                }}>{step.label}</span>
+                <span key={step.label} style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: step.idx === 1 ? '#137FEC' : '#64748B', opacity: step.idx === 1 ? 1 : 0.5 }}>{step.label}</span>
               ))}
             </div>
           </div>
 
           {/* PAGE HEADER */}
           <div style={{ marginBottom: '32px' }}>
-            <h1 style={{
-              fontSize: '30px', fontWeight: 900, color: '#0F172A',
-              letterSpacing: '-0.75px', lineHeight: '36px', marginBottom: '8px',
-            }}>Select your resume</h1>
-            <p style={{ fontSize: '18px', color: '#475569', lineHeight: '28px' }}>
-              Choose one of your saved documents or upload a fresh version for this application.
-            </p>
+            <h1 style={{ fontSize: '30px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.75px', lineHeight: '36px', marginBottom: '8px' }}>Select your resume</h1>
+            <p style={{ fontSize: '18px', color: '#475569', lineHeight: '28px' }}>Choose one of your saved documents or upload a fresh version for this application.</p>
           </div>
 
           {/* SAVED RESUMES */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '48px' }}>
             <div style={{ padding: '0 4px' }}>
-              <span style={{
-                fontSize: '14px', fontWeight: 700, color: '#64748B',
-                letterSpacing: '1.4px', textTransform: 'uppercase',
-              }}>Saved Resumes</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: '#64748B', letterSpacing: '1.4px', textTransform: 'uppercase' }}>Saved Resumes</span>
             </div>
-
             {resumes.map((resume) => {
               const isSelected = selectedResume === resume.id;
               return (
-                <div
-                  key={resume.id}
-                  className="resume-card"
-                  style={{
-                    border: isSelected ? '2px solid #137FEC' : '1px solid #E2E8F0',
-                    padding: '20px',
-                    display: 'flex', gap: '24px', alignItems: 'flex-start',
-                  }}
-                  onClick={() => setSelectedResume(resume.id)}
-                >
+                <div key={resume.id} className="resume-card" style={{ border: isSelected ? '2px solid #137FEC' : '1px solid #E2E8F0', padding: '20px', display: 'flex', gap: '24px', alignItems: 'flex-start' }} onClick={() => setSelectedResume(resume.id)}>
                   <ResumePreview selected={isSelected} />
-
-                  <div style={{
-                    flex: 1, display: 'flex', flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    height: isSelected ? 160 : 120,
-                    paddingTop: '4px', paddingBottom: isSelected ? '4px' : '4px',
-                  }}>
-                    {/* Top: name + badge */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: isSelected ? 160 : 120, paddingTop: '4px', paddingBottom: '4px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>{resume.name}</span>
-                        {isSelected && (
-                          <span style={{
-                            background: 'rgba(19,127,236,0.1)', color: '#137FEC',
-                            fontSize: '12px', fontWeight: 700,
-                            padding: '4px 8px', borderRadius: '4px',
-                          }}>Selected</span>
-                        )}
+                        {isSelected && (<span style={{ background: 'rgba(19,127,236,0.1)', color: '#137FEC', fontSize: '12px', fontWeight: 700, padding: '4px 8px', borderRadius: '4px' }}>Selected</span>)}
                       </div>
                       <span style={{ fontSize: '14px', color: '#64748B' }}>{resume.updated}</span>
-
-                      {/* Tags (only for selected) */}
                       {isSelected && (
                         <div style={{ display: 'flex', gap: '8px', paddingTop: '12px' }}>
-                          {['📄 PDF', '🌐 English'].map(tag => (
-                            <span key={tag} style={{
-                              display: 'flex', alignItems: 'center', gap: '4px',
-                              background: '#F1F5F9', color: '#475569',
-                              fontSize: '12px', padding: '4px 8px', borderRadius: '4px',
-                            }}>{tag}</span>
-                          ))}
+                          {['📄 PDF', '🌐 English'].map(tag => (<span key={tag} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F1F5F9', color: '#475569', fontSize: '12px', padding: '4px 8px', borderRadius: '4px' }}>{tag}</span>))}
                         </div>
                       )}
                     </div>
-
-                    {/* Bottom: actions */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingTop: '24px' }}>
                       {isSelected ? (
                         <>
-                          <button className="btn-use">✓ Use this resume</button>
-                          <button className="btn-ghost">Edit details</button>
+                          {/* ✅ Use this resume → cover letter step */}
+                          <button className="btn-use" onClick={(e) => { e.stopPropagation(); navigate('/apply/1/cover-letter'); }}>✓ Use this resume</button>
+                          {/* ✅ Edit details → resume builder */}
+                          <button className="btn-ghost" onClick={(e) => { e.stopPropagation(); navigate('/resume-builder'); }}>Edit details</button>
                         </>
                       ) : (
                         <>
                           <button className="btn-secondary" onClick={(e) => { e.stopPropagation(); setSelectedResume(resume.id); }}>Select</button>
-                          <button className="btn-ghost" onClick={(e) => e.stopPropagation()}>Delete</button>
+                          {/* ✅ Delete → confirm then remove */}
+                          <button className="btn-ghost" onClick={(e) => { e.stopPropagation(); alert('Resume deleted!'); }}>Delete</button>
                         </>
                       )}
                     </div>
@@ -240,79 +140,42 @@ const ResumeSelection = () => {
           {/* UPLOAD NEW */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '48px' }}>
             <div style={{ padding: '0 4px' }}>
-              <span style={{
-                fontSize: '14px', fontWeight: 700, color: '#64748B',
-                letterSpacing: '1.4px', textTransform: 'uppercase',
-              }}>Upload New</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: '#64748B', letterSpacing: '1.4px', textTransform: 'uppercase' }}>Upload New</span>
             </div>
-
-            <div
-              className={`drop-zone${dragOver ? ' dragover' : ''}`}
-              style={{
-                padding: '40px',
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                gap: '0',
-                minHeight: '249px',
-              }}
+            <div className={`drop-zone${dragOver ? ' dragover' : ''}`} style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0', minHeight: '249px' }}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onDrop={(e) => { e.preventDefault(); setDragOver(false); }}
-              onClick={() => document.getElementById('resume-upload').click()}
-            >
+              onClick={() => document.getElementById('resume-upload').click()}>
               <input id="resume-upload" type="file" accept=".pdf,.docx" style={{ display: 'none' }} />
-
-              {/* Upload icon */}
-              <div style={{
-                width: 56, height: 56,
-                background: '#F1F5F9', borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '22px', marginBottom: '16px',
-              }}>📄</div>
-
-              <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
-                Upload a new resume
-              </h4>
-              <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '24px', textAlign: 'center' }}>
-                Drag and drop your file here, or click to browse
-              </p>
-
-              {/* File type badges */}
+              <div style={{ width: 56, height: 56, background: '#F1F5F9', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', marginBottom: '16px' }}>📄</div>
+              <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Upload a new resume</h4>
+              <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '24px', textAlign: 'center' }}>Drag and drop your file here, or click to browse</p>
               <div style={{ display: 'flex', gap: '16px' }}>
-                {['✓ PDF, DOCX', '✓ MAX 5MB'].map(label => (
-                  <span key={label} style={{
-                    fontSize: '12px', fontWeight: 700, color: '#94A3B8',
-                    letterSpacing: '-0.3px', textTransform: 'uppercase',
-                    display: 'flex', alignItems: 'center', gap: '4px',
-                  }}>{label}</span>
-                ))}
+                {['✓ PDF, DOCX', '✓ MAX 5MB'].map(label => (<span key={label} style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8', letterSpacing: '-0.3px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>{label}</span>))}
               </div>
             </div>
           </div>
 
           {/* ACTION FOOTER */}
-          <div style={{
-            borderTop: '1px solid #E2E8F0',
-            paddingTop: '32px',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          }}>
-            <button className="btn-back">
+          <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* ✅ Back → go back */}
+            <button className="btn-back" onClick={() => navigate(-1)}>
               <span style={{ fontSize: '16px' }}>←</span> Back
             </button>
-            <button className="btn-primary">Continue to Portfolio</button>
+            {/* ✅ Continue → cover letter step */}
+            <button className="btn-primary" onClick={() => navigate('/apply/1/cover-letter')}>Continue to Portfolio</button>
           </div>
         </div>
       </main>
 
-      {/* FOOTER SMALL PRINT */}
+      {/* FOOTER */}
       <footer style={{ padding: '32px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-        <p style={{ fontSize: '14px', color: '#94A3B8', textAlign: 'center' }}>
-          © 2024 TechHire Recruitment Platform. All rights reserved.
-        </p>
+        <p style={{ fontSize: '14px', color: '#94A3B8', textAlign: 'center' }}>© 2024 TechHire Recruitment Platform. All rights reserved.</p>
         <div style={{ display: 'flex', gap: '16px' }}>
-          {['Privacy Policy', 'Terms of Service'].map(l => (
-            <a key={l} href="#" style={{ fontSize: '14px', color: '#94A3B8' }}>{l}</a>
-          ))}
+          {/* ✅ Footer links */}
+          <span onClick={() => navigate('/privacy')}   style={{ fontSize: '14px', color: '#94A3B8', cursor: 'pointer' }}>Privacy Policy</span>
+          <span onClick={() => navigate('/platform')}  style={{ fontSize: '14px', color: '#94A3B8', cursor: 'pointer' }}>Terms of Service</span>
         </div>
       </footer>
     </div>

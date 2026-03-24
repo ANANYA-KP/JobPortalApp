@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const jobs = [
   { id: 1, title: 'Senior Full Stack Engineer', type: 'Full-time', location: 'Remote', initials: 'SL', initBg: '#DBEAFE', initColor: '#2563EB', company: 'Stripe Labs', date: 'Oct 24, 2023', status: 'LIVE', statusDot: '#22C55E', statusBg: '#F0FDF4', statusColor: '#16A34A', reports: null },
@@ -8,7 +9,7 @@ const jobs = [
 ];
 
 const statusTabs = [
-  { label: 'All Jobs (1,429)', active: true, activeBg: '#137FEC', activeColor: '#fff' },
+  { label: 'All Jobs (1,429)', active: true },
   { label: 'Live (1,102)', active: false },
   { label: 'Pending (84)', active: false },
   { label: 'Expired (243)', active: false },
@@ -16,14 +17,14 @@ const statusTabs = [
 
 const sideNav = [
   { section: 'MANAGEMENT', items: [
-    { icon: '⊞', label: 'Overview' },
-    { icon: '💼', label: 'Job Listings', active: true },
-    { icon: '🏢', label: 'Companies' },
-    { icon: '👥', label: 'Candidates' },
+    { icon: '⊞', label: 'Overview',     path: '/admin/dashboard' },
+    { icon: '💼', label: 'Job Listings', path: '/employer/manage-jobs', active: true },
+    { icon: '🏢', label: 'Companies',    path: '/employer/profile' },
+    { icon: '👥', label: 'Candidates',   path: '/admin/users' },
   ]},
   { section: 'REPORTS & AUDIT', items: [
-    { icon: '🚩', label: 'Reported Content' },
-    { icon: '📊', label: 'Usage Analytics' },
+    { icon: '🚩', label: 'Reported Content', path: '/admin/reported-jobs' },
+    { icon: '📊', label: 'Usage Analytics',  path: '/employer/analytics' },
   ]},
 ];
 
@@ -32,6 +33,7 @@ const AdminJobListings = () => {
   const [quickSearch, setQuickSearch] = useState('');
   const [activeTab, setActiveTab] = useState('All Jobs (1,429)');
   const [page, setPage] = useState(1);
+  const navigate = useNavigate();
 
   const filtered = jobs.filter(j =>
     j.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -73,15 +75,15 @@ const AdminJobListings = () => {
       `}</style>
 
       <div style={{ display: 'flex', flex: 1 }}>
-
-        {/* ── LEFT SIDEBAR ── */}
+        {/* LEFT SIDEBAR */}
         <aside style={{ width: 240, background: '#FFFFFF', borderRight: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', padding: '24px 16px', minHeight: '100vh', flexShrink: 0 }}>
           {sideNav.map(group => (
             <div key={group.section} style={{ marginBottom: 24 }}>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.8px', textTransform: 'uppercase', padding: '0 12px', marginBottom: 8 }}>{group.section}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {group.items.map(item => (
-                  <button key={item.label} className={`nav-item${item.active ? ' active' : ''}`}>
+                  /* ✅ Sidebar nav → navigate */
+                  <button key={item.label} className={`nav-item${item.active ? ' active' : ''}`} onClick={() => navigate(item.path)}>
                     <span style={{ fontSize: 16 }}>{item.icon}</span>
                     {item.label}
                   </button>
@@ -89,8 +91,6 @@ const AdminJobListings = () => {
               </div>
             </div>
           ))}
-
-          {/* System status */}
           <div style={{ marginTop: 'auto', padding: '16px 12px', borderTop: '1px solid #F1F5F9' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22C55E', flexShrink: 0 }} />
@@ -100,60 +100,59 @@ const AdminJobListings = () => {
           </div>
         </aside>
 
-        {/* ── MAIN CONTENT ── */}
+        {/* MAIN CONTENT */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-
           {/* Top header */}
           <header style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0 32px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-            {/* Logo + search */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 8 }}>
-                <div style={{ width: 32, height: 32, background: '#137FEC', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>💼</div>
-                <span style={{ fontWeight: 700, fontSize: 16, color: '#0F172A' }}>oobPortal <span style={{ color: '#137FEC' }}>Admin</span></span>
+                {/* ✅ Logo → admin dashboard */}
+                <div onClick={() => navigate('/admin/dashboard')} style={{ width: 32, height: 32, background: '#137FEC', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, cursor: 'pointer' }}>💼</div>
+                <span onClick={() => navigate('/admin/dashboard')} style={{ fontWeight: 700, fontSize: 16, color: '#0F172A', cursor: 'pointer' }}>JobPortal <span style={{ color: '#137FEC' }}>Admin</span></span>
               </div>
               <div style={{ position: 'relative', width: 280 }}>
                 <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: '#94A3B8' }}>🔍</span>
                 <input value={quickSearch} onChange={e => setQuickSearch(e.target.value)} placeholder="Quick search..." style={{ width: '100%', height: 36, padding: '0 16px 0 36px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, color: '#0F172A' }} />
               </div>
             </div>
-
-            {/* Nav + actions */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
               <nav style={{ display: 'flex', gap: 24 }}>
-                {['Dashboard', 'Jobs', 'Users', 'Analytics'].map(item => (
-                  <button key={item} className={`top-nav-link${item === 'Jobs' ? ' active' : ''}`}>{item}</button>
-                ))}
+                {/* ✅ Top nav */}
+                <button className="top-nav-link" onClick={() => navigate('/admin/dashboard')}>Dashboard</button>
+                <button className={`top-nav-link active`} onClick={() => navigate('/employer/manage-jobs')}>Jobs</button>
+                <button className="top-nav-link" onClick={() => navigate('/admin/users')}>Users</button>
+                <button className="top-nav-link" onClick={() => navigate('/employer/analytics')}>Analytics</button>
               </nav>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <button style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>
+                {/* ✅ Bell → notifications */}
+                <button onClick={() => navigate('/notifications')} style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>
                   🔔
                   <div style={{ position: 'absolute', top: 2, right: 2, width: 7, height: 7, background: '#EF4444', borderRadius: '50%', border: '1.5px solid #fff' }} />
                 </button>
-                <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>⚙️</button>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, cursor: 'pointer' }}>👤</div>
+                {/* ✅ Settings */}
+                <button onClick={() => navigate('/admin/settings')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>⚙️</button>
+                {/* ✅ Avatar → profile */}
+                <div onClick={() => navigate('/employer/profile')} style={{ width: 36, height: 36, borderRadius: '50%', background: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, cursor: 'pointer' }}>👤</div>
               </div>
             </div>
           </header>
 
           {/* Page content */}
           <main style={{ padding: 32, flex: 1, overflowY: 'auto' }}>
-
-            {/* Page header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
               <div>
                 <h1 style={{ fontSize: 32, fontWeight: 900, color: '#0F172A', letterSpacing: '-0.8px', marginBottom: 6 }}>Job Listings</h1>
                 <p style={{ fontSize: 15, color: '#64748B' }}>Monitor and manage 1,429 job postings across the network.</p>
               </div>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <button className="btn-export">⬇ Export CSV</button>
-                <button className="btn-post">+ Post New Job</button>
+                {/* ✅ Export CSV */}
+                <button className="btn-export" onClick={() => alert('Exporting CSV...')}>⬇ Export CSV</button>
+                {/* ✅ Post New Job */}
+                <button className="btn-post" onClick={() => navigate('/employer/post-job')}>+ Post New Job</button>
               </div>
             </div>
 
-            {/* Table card */}
             <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-
-              {/* Search + filter bar */}
               <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ position: 'relative', flex: 1, maxWidth: 480 }}>
                   <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: '#94A3B8' }}>🔍</span>
@@ -164,73 +163,55 @@ const AdminJobListings = () => {
                 <button className="filter-btn">⚙ More filters</button>
               </div>
 
-              {/* Status tabs */}
               <div style={{ padding: '16px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', gap: 8 }}>
                 {statusTabs.map(tab => (
-                  <button
-                    key={tab.label}
-                    className={`status-tab${activeTab === tab.label ? ' active' : ''}`}
-                    onClick={() => setActiveTab(tab.label)}
-                  >{tab.label}</button>
+                  <button key={tab.label} className={`status-tab${activeTab === tab.label ? ' active' : ''}`} onClick={() => setActiveTab(tab.label)}>{tab.label}</button>
                 ))}
               </div>
 
-              {/* Table header */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.2fr 1fr 1fr 80px', padding: '12px 24px', gap: 16, background: '#FFFFFF', borderBottom: '1px solid #F1F5F9' }}>
                 {['JOB TITLE', 'COMPANY', 'DATE POSTED', 'STATUS', 'REPORTS', 'ACTIONS'].map((col, i) => (
                   <div key={col} style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.8px', textTransform: 'uppercase', textAlign: i === 5 ? 'center' : 'left' }}>{col}</div>
                 ))}
               </div>
 
-              {/* Table rows */}
               <div>
                 {filtered.map(job => (
-                  <div key={job.id} className="table-row">
-                    {/* Job title */}
+                  /* ✅ Table row → job detail */
+                  <div key={job.id} className="table-row" onClick={() => navigate(`/jobs/${job.id}`)}>
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 3 }}>{job.title}</p>
                       <p style={{ fontSize: 13, color: '#94A3B8' }}>{job.type} • {job.location}</p>
                     </div>
-
-                    {/* Company */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 32, height: 32, background: job.initBg, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12, color: job.initColor, flexShrink: 0 }}>{job.initials}</div>
                       <span style={{ fontSize: 14, color: '#0F172A', fontWeight: 500 }}>{job.company}</span>
                     </div>
-
-                    {/* Date */}
                     <div style={{ fontSize: 14, color: '#475569' }}>{job.date}</div>
-
-                    {/* Status badge */}
                     <div>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: job.statusBg, color: job.statusColor, fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 9999, letterSpacing: '0.5px' }}>
                         <span style={{ width: 6, height: 6, borderRadius: '50%', background: job.statusDot, flexShrink: 0 }} />
                         {job.status}
                       </span>
                     </div>
-
-                    {/* Reports */}
                     <div>
                       {job.reports ? (
-                        <span style={{ background: '#FEE2E2', color: '#DC2626', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 6 }}>{job.reports}</span>
+                        /* ✅ Reports badge → reported jobs */
+                        <span onClick={e => { e.stopPropagation(); navigate('/admin/reported-jobs'); }} style={{ background: '#FEE2E2', color: '#DC2626', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 6, cursor: 'pointer' }}>{job.reports}</span>
                       ) : (
                         <span style={{ fontSize: 14, color: '#CBD5E1' }}>None</span>
                       )}
                     </div>
-
-                    {/* Actions */}
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
-                      <button className="dot-menu">⋮</button>
+                      {/* ✅ Dot menu → job detail */}
+                      <button className="dot-menu" onClick={e => { e.stopPropagation(); navigate(`/jobs/${job.id}`); }}>⋮</button>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Pagination */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid #F1F5F9' }}>
-                <p style={{ fontSize: 14, color: '#64748B' }}>
-                  Showing <strong style={{ color: '#0F172A' }}>1-10</strong> of <strong style={{ color: '#0F172A' }}>1,429</strong> jobs
-                </p>
+                <p style={{ fontSize: 14, color: '#64748B' }}>Showing <strong style={{ color: '#0F172A' }}>1-10</strong> of <strong style={{ color: '#0F172A' }}>1,429</strong> jobs</p>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <button className="page-btn disabled" disabled>‹</button>
                   {[1, 2, 3].map(p => (
