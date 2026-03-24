@@ -3,6 +3,7 @@ import React, { useState, useCallback } from 'react';
 import RequirementsPanel from './components/RequirementsPanel';
 import CandidateCard from './components/CandidateCard';
 import StatsBar from './components/StatsBar';
+import OnlineAssessmentTest from './components/OnlineAssessmentTest';
 import { MOCK_CANDIDATES, EXPERIENCE_LEVELS, EDUCATION_LEVELS } from './data';
 
 const EDUCATION_ORDER = ["Any", "High School", "Associate's", "Bachelor's", "Master's", "PhD"];
@@ -17,16 +18,12 @@ const defaultRequirements = {
 
 function computeScore(candidate, requirements) {
   let score = 50;
-
-  // Skills match
   if (requirements.skills.length > 0) {
     const matched = requirements.skills.filter(s => candidate.skills.includes(s)).length;
     score = Math.round((matched / requirements.skills.length) * 100);
   } else {
     score = 60 + Math.floor(Math.random() * 35);
   }
-
-  // Experience bonus
   const expLevel = EXPERIENCE_LEVELS.find(l => l.label === requirements.experienceLevel);
   if (expLevel && expLevel.label !== 'Any') {
     if (candidate.experienceYears >= expLevel.min && candidate.experienceYears <= expLevel.max) {
@@ -35,8 +32,6 @@ function computeScore(candidate, requirements) {
       score = Math.max(0, score - 10);
     }
   }
-
-  // Education bonus
   const reqEduIndex = EDUCATION_ORDER.indexOf(requirements.education);
   const candEduIndex = EDUCATION_ORDER.indexOf(candidate.education);
   if (requirements.education !== 'Any') {
@@ -46,29 +41,20 @@ function computeScore(candidate, requirements) {
       score = Math.max(0, score - 8);
     }
   }
-
   return score;
 }
 
 function meetsRequirements(candidate, requirements) {
-  // Experience filter
   const expLevel = EXPERIENCE_LEVELS.find(l => l.label === requirements.experienceLevel);
   if (expLevel && expLevel.label !== 'Any') {
-    if (candidate.experienceYears < expLevel.min || candidate.experienceYears > expLevel.max) {
-      return false;
-    }
+    if (candidate.experienceYears < expLevel.min || candidate.experienceYears > expLevel.max) return false;
   }
-
-  // Education filter
   if (requirements.education !== 'Any') {
     const reqIdx = EDUCATION_ORDER.indexOf(requirements.education);
     const candIdx = EDUCATION_ORDER.indexOf(candidate.education);
     if (candIdx < reqIdx) return false;
   }
-
-  // Score filter
   if (candidate.score < requirements.minScore) return false;
-
   return true;
 
 ﻿import React from 'react';
@@ -191,6 +177,10 @@ jobportelteam
 }
 
 export default function App() {
+  // ── Page routing state ──────────────────────────────────
+  const [currentPage, setCurrentPage] = useState('hirefilter'); // 'hirefilter' | 'assessments'
+
+  // ── HireFilter state ────────────────────────────────────
   const [requirements, setRequirements] = useState(defaultRequirements);
   const [candidates, setCandidates] = useState(
     MOCK_CANDIDATES.map(c => ({ ...c, score: 70 + Math.floor(Math.random() * 25) }))
@@ -198,13 +188,10 @@ export default function App() {
   const [filtered, setFiltered] = useState(null);
   const [sortBy, setSortBy] = useState('score');
   const [filterApplied, setFilterApplied] = useState(false);
-  const [tab, setTab] = useState('all'); // 'all' | 'shortlisted'
+  const [tab, setTab] = useState('all');
 
   const handleFilter = useCallback(() => {
-    const updated = candidates.map(c => ({
-      ...c,
-      score: computeScore(c, requirements),
-    }));
+    const updated = candidates.map(c => ({ ...c, score: computeScore(c, requirements) }));
     const result = updated.filter(c => meetsRequirements(c, requirements));
     setCandidates(updated);
     setFiltered(result);
@@ -220,9 +207,7 @@ export default function App() {
 
   const handleToggleShortlist = (id) => {
     setCandidates(prev => prev.map(c => c.id === id ? { ...c, shortlisted: !c.shortlisted } : c));
-    if (filtered) {
-      setFiltered(prev => prev.map(c => c.id === id ? { ...c, shortlisted: !c.shortlisted } : c));
-    }
+    if (filtered) setFiltered(prev => prev.map(c => c.id === id ? { ...c, shortlisted: !c.shortlisted } : c));
   };
 
   const handleUpload = (candidateId, file, url) => {
@@ -248,9 +233,47 @@ export default function App() {
     ? Math.round(sorted.reduce((s, c) => s + c.score, 0) / sorted.length)
     : 0;
 
+  // ── If Assessments page ─────────────────────────────────
+  if (currentPage === 'assessments') {
+    return (
+      <div>
+        {/* Back nav */}
+        <div style={{
+          background: '#0a1018',
+          borderBottom: '1px solid #ffffff08',
+          padding: '12px 32px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+        }}>
+          <button
+            onClick={() => setCurrentPage('hirefilter')}
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#94a3b8',
+              borderRadius: 8,
+              padding: '6px 14px',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            ← Back to HireFilter
+          </button>
+          <span style={{ fontSize: 13, color: '#445566' }}>Online Assessment Tests</span>
+        </div>
+        <OnlineAssessmentTest />
+      </div>
+    );
+  }
+
+  // ── HireFilter page ─────────────────────────────────────
   return (
 jobportelteam
     <div style={{ minHeight: '100vh', background: '#070d14' }}>
+
       {/* Header */}
       <header style={{
         borderBottom: '1px solid #ffffff08',
@@ -283,7 +306,26 @@ jobportelteam
           </div>
         </div>
 
+        {/* ── Nav: added Assessments link ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button
+            onClick={() => setCurrentPage('assessments')}
+            style={{
+              background: 'rgba(59,130,246,0.12)',
+              border: '1px solid rgba(59,130,246,0.3)',
+              color: '#60a5fa',
+              borderRadius: 8,
+              padding: '7px 16px',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              letterSpacing: '0.3px',
+            }}
+          >
+            📋 Online Assessments
+          </button>
+
           {filterApplied && (
             <span style={{
               fontSize: 11, padding: '4px 10px', borderRadius: 6,
@@ -293,11 +335,12 @@ jobportelteam
               {filtered?.length} results
             </span>
           )}
-          <div style={{ fontSize: 12, color: '#445566' }}>
-            {shortlistedCount > 0 && (
-              <span style={{ color: '#f5c518' }}>⭐ {shortlistedCount} shortlisted</span>
-            )}
-          </div>
+
+          {shortlistedCount > 0 && (
+            <span style={{ fontSize: 12, color: '#f5c518' }}>
+              ⭐ {shortlistedCount} shortlisted
+            </span>
+          )}
         </div>
       </header>
 
@@ -321,7 +364,6 @@ jobportelteam
 
         {/* Right: Candidates */}
         <div>
-          {/* Stats */}
           <StatsBar
             total={candidates.length}
             filtered={filtered?.length ?? candidates.length}
@@ -352,6 +394,7 @@ jobportelteam
                     border: 'none', transition: 'all 0.18s',
                     background: tab === t.id ? '#00e5a0' : 'transparent',
                     color: tab === t.id ? '#070d14' : '#445566',
+                    cursor: 'pointer',
                   }}
                 >
                   {t.label}
@@ -373,6 +416,7 @@ jobportelteam
                     color: sortBy === s ? '#00e5a0' : '#445566',
                     textTransform: 'capitalize',
                     transition: 'all 0.18s',
+                    cursor: 'pointer',
                   }}
                 >
                   {s}
@@ -381,7 +425,7 @@ jobportelteam
             </div>
           </div>
 
-          {/* Candidate list or empty state */}
+          {/* Candidate list */}
           {sorted.length === 0 ? (
             <div style={{
               background: '#0d1520', border: '1px solid #ffffff0f', borderRadius: 14,
@@ -412,7 +456,6 @@ jobportelteam
             </div>
           )}
 
-          {/* Shortlist export note */}
           {shortlistedCount > 0 && (
             <div style={{
               marginTop: 20, padding: '14px 18px',
