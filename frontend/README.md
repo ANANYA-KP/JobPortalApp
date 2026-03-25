@@ -1,70 +1,99 @@
-# Getting Started with Create React App
+# 🚀 HireFilter — HR Resume Screening Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A production-grade React frontend for HR teams to filter and shortlist candidates based on company requirements.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## ✨ Features
 
-### `npm start`
+- **Requirements Panel** — Set job title, required skills, experience level, education, and minimum match score
+- **Smart Scoring** — Candidates are dynamically scored based on how well they match requirements
+- **PDF Resume Upload** — Upload PDF resumes per candidate via drag-and-drop or file browser
+- **Shortlisting** — Mark candidates and view them in a dedicated tab
+- **Sort & Filter** — Sort by match score, name, or experience
+- **Stats Dashboard** — See total, filtered, shortlisted count, and average match score at a glance
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠 Tech Stack
 
-### `npm test`
+- **React 18** — UI framework
+- **No backend required** — Pure frontend, all state in memory
+- **Fonts**: Syne, Space Mono, DM Sans (Google Fonts)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 🚀 Getting Started
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Prerequisites
+- Node.js 16+
+- npm or yarn
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Install & Run
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm install
+npm start
+```
 
-### `npm run eject`
+App runs at: http://localhost:3000
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📁 Project Structure
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```
+src/
+├── App.js                    # Main app with state management
+├── data.js                   # Mock candidates + constants
+├── index.js                  # React entry point
+├── index.css                 # Global styles & CSS variables
+└── components/
+    ├── RequirementsPanel.jsx  # Left sidebar: filter controls
+    ├── CandidateCard.jsx      # Candidate card with PDF upload
+    └── StatsBar.jsx           # Top stats dashboard
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+## 📄 PDF Resume Feature
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Each candidate card has an expandable section with a **PDF uploader**:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Drag & drop a `.pdf` file onto the upload zone
+- Or click "browse" to select from your file system
+- Once uploaded, a **VIEW** button opens the PDF in a new tab
+- You can replace an uploaded resume anytime
 
-### Code Splitting
+> ⚠️ Only PDF files are accepted. Files are stored in-memory (not sent to any server).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## 🔧 How Scoring Works
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+When you click **Filter Candidates**, each candidate receives a match score:
 
-### Making a Progressive Web App
+1. **Skills match** — % of required skills the candidate has
+2. **Experience bonus/penalty** — ±5–10 points based on experience level match
+3. **Education bonus/penalty** — ±5–8 points based on education level
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Candidates scoring below the **Min Match Score** threshold are hidden.
 
-### Advanced Configuration
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 🔌 Backend Integration (Future)
 
-### Deployment
+To connect to a real backend:
+- Replace mock data in `src/data.js` with API calls
+- POST requirements to `/api/filter` and receive scored candidates
+- Store uploaded PDFs via multipart form upload to your server
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
 
-### `npm run build` fails to minify
+## 📦 Build for Production
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+npm run build
+```
+
+Output goes to the `build/` folder, ready to deploy on Vercel, Netlify, or any static host.
