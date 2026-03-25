@@ -1,766 +1,269 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const BASE = "http://127.0.0.1:8000";
-const API  = `${BASE}/api`;
-const tok  = () => localStorage.getItem("token");
+const CandidateProfile = () => {
+  const [activeTab, setActiveTab] = useState('Overview');
+  const navigate = useNavigate();
+  const tabs = ['Overview', 'Experience', 'Education', 'Skills & Endorsements'];
 
-async function api(path, opts = {}) {
-  const isForm = opts.body instanceof FormData;
-  const headers = {
-    Authorization: `Bearer ${tok()}`,
-    ...(isForm ? {} : { "Content-Type": "application/json" }),
-    ...(opts.headers || {}),
-  };
-  const res = await fetch(`${API}${path}`, { ...opts, headers });
-  if (res.status === 204) return null;
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw json;
-  return json;
-}
-
-const DEGREE_CHOICES = [
-  { value: "ssc",      label: "SSC / 10th" },
-  { value: "hsc",      label: "HSC / 12th" },
-  { value: "diploma",  label: "Diploma" },
-  { value: "bachelor", label: "Bachelor's Degree" },
-  { value: "master",   label: "Master's Degree" },
-  { value: "phd",      label: "PhD" },
-  { value: "other",    label: "Other" },
-];
-const EMP_CHOICES = [
-  { value: "full_time",  label: "Full Time" },
-  { value: "part_time",  label: "Part Time" },
-  { value: "freelance",  label: "Freelance" },
-  { value: "internship", label: "Internship" },
-  { value: "contract",   label: "Contract" },
-];
-const PROF_CHOICES = [
-  { value: "beginner",     label: "Beginner" },
-  { value: "intermediate", label: "Intermediate" },
-  { value: "advanced",     label: "Advanced" },
-  { value: "expert",       label: "Expert" },
-];
-
-const S = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Nunito:wght@300;400;500;600;700&display=swap');
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg:#f3f5f7; --white:#ffffff; --surface:#f8fafc; --border:#e5e7eb; --border2:#d1d5db;
-  --blue:#ff6b35; --blue-lt:#fff7ed; --blue-dk:#c2410c;
-  --teal:#0f766e; --teal-lt:#ecfdf5;
-  --orange:#f59e0b; --orange-lt:#fff7ed;
-  --text:#111827; --muted:#6b7280; --light:#9ca3af;
-  --danger:#ef4444; --danger-lt:#fef2f2;
-  --success:#10b981; --success-lt:#f0fdf4;
-  --r:14px; --font:'Nunito',sans-serif; --head:'Fraunces',serif;
-  --shadow:0 1px 3px rgba(15,23,42,.08),0 8px 20px rgba(15,23,42,.08);
-  --shadow-lg:0 10px 28px rgba(15,23,42,.12);
-}
-body { background:var(--bg); font-family:var(--font); color:var(--text); }
-.shell { min-height:100vh; }
-.topbar {
-  background:var(--white); border-bottom:1px solid var(--border);
-  height:60px; display:flex; align-items:center; justify-content:space-between;
-  padding:0 2rem; position:sticky; top:0; z-index:100;
-  box-shadow:0 1px 0 var(--border);
-}
-.topbar-brand { font-family:var(--head); font-size:1.25rem; font-weight:700; color:var(--blue-dk); letter-spacing:-.02em; }
-.topbar-brand span { color:var(--teal); }
-.topbar-right { display:flex; align-items:center; gap:.75rem; }
-.topbar-name { font-size:.83rem; font-weight:600; color:var(--muted); }
-.topbar-av { width:34px; height:34px; border-radius:50%; object-fit:cover; border:2px solid var(--border2); }
-.topbar-av-ph {
-  width:34px; height:34px; border-radius:50%;
-  background:linear-gradient(135deg,var(--blue),var(--teal));
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--head); font-size:.72rem; font-weight:700; color:#fff;
-  border:2px solid var(--border2);
-}
-.layout {
-  max-width:1140px; margin:0 auto; padding:2rem 1.5rem;
-  display:grid; grid-template-columns:290px 1fr; gap:1.75rem; align-items:start;
-}
-.sidebar {
-  background:var(--white); border-radius:var(--r);
-  border:1px solid var(--border); box-shadow:var(--shadow);
-  overflow:hidden; position:sticky; top:76px;
-}
-.sb-hero { position:relative; padding-bottom:1.5rem; }
-.sb-cover {
-  height:90px;
-  background:linear-gradient(135deg,#ff6b35 0%,#f59e0b 50%,#14b8a6 100%);
-  position:relative; overflow:hidden;
-}
-.sb-cover::after {
-  content:''; position:absolute; inset:0;
-  background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.07'%3E%3Ccircle cx='20' cy='20' r='15'/%3E%3C/g%3E%3C/svg%3E");
-}
-.sb-av-wrap { position:absolute; bottom:-36px; left:50%; transform:translateX(-50%); width:76px; height:76px; }
-.sb-av-img { width:76px; height:76px; border-radius:50%; object-fit:cover; border:3px solid var(--white); box-shadow:var(--shadow-lg); }
-.sb-av-ph {
-  width:76px; height:76px; border-radius:50%;
-  background:linear-gradient(135deg,var(--blue),var(--teal));
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--head); font-size:1.5rem; font-weight:700; color:#fff;
-  border:3px solid var(--white); box-shadow:var(--shadow-lg);
-}
-.sb-info { margin-top:44px; text-align:center; padding:0 1.25rem .75rem; }
-.sb-name { font-family:var(--head); font-size:1.05rem; font-weight:700; color:var(--text); margin-bottom:.2rem; }
-.sb-headline { font-size:.78rem; color:var(--teal); font-weight:600; margin-bottom:.75rem; }
-.sb-meta { display:flex; flex-direction:column; gap:.4rem; margin-bottom:.75rem; }
-.sb-meta-row { display:flex; align-items:center; justify-content:center; gap:.4rem; font-size:.76rem; color:var(--muted); }
-.sb-meta-row strong { color:var(--text); font-weight:600; }
-.sb-chips { display:flex; flex-wrap:wrap; gap:.3rem; justify-content:center; padding-bottom:.5rem; }
-.sb-chip { font-size:.68rem; padding:.18rem .55rem; border-radius:20px; background:var(--blue-lt); color:var(--blue-dk); border:1px solid #fed7aa; font-weight:600; }
-.nav { border-top:1px solid var(--border); padding:.4rem 0; }
-.nav-item {
-  display:flex; align-items:center; gap:.65rem; width:100%;
-  padding:.65rem 1.25rem; font-size:.84rem; font-weight:600;
-  color:var(--muted); background:none; border:none; cursor:pointer;
-  text-align:left; transition:all .15s; border-left:3px solid transparent;
-  font-family:var(--font);
-}
-.nav-item:hover { background:var(--surface); color:var(--text); }
-.nav-item.active { color:var(--blue-dk); background:var(--blue-lt); border-left-color:var(--blue); }
-.nav-dot { margin-left:auto; font-size:.67rem; font-weight:700; background:var(--border); border-radius:20px; padding:.1rem .45rem; color:var(--muted); }
-.nav-item.active .nav-dot { background:#bfdbfe; color:var(--blue-dk); }
-.main { display:flex; flex-direction:column; gap:1.25rem; }
-.card { background:var(--white); border-radius:var(--r); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; animation:up .25s ease both; }
-@keyframes up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-.card-head { padding:1.1rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--surface); }
-.card-title { font-family:var(--head); font-size:.98rem; font-weight:700; display:flex; align-items:center; gap:.5rem; color:var(--text); }
-.card-title-icon { color:var(--blue); }
-.card-body { padding:1.5rem; }
-.btn { display:inline-flex; align-items:center; gap:.35rem; padding:.5rem 1.1rem; border-radius:8px; font-size:.81rem; font-weight:700; cursor:pointer; border:none; transition:all .15s; font-family:var(--font); }
-.btn-blue { background:var(--blue); color:#fff; }
-.btn-blue:hover { background:var(--blue-dk); }
-.btn-teal { background:var(--teal); color:#fff; }
-.btn-teal:hover { background:#0f766e; }
-.btn-ghost { background:var(--white); color:var(--muted); border:1.5px solid var(--border2); }
-.btn-ghost:hover { border-color:var(--blue); color:var(--blue); }
-.btn-danger { background:var(--danger-lt); color:var(--danger); border:1.5px solid #fecaca; }
-.btn-danger:hover { background:#fee2e2; }
-.btn-sm { padding:.3rem .7rem; font-size:.74rem; }
-.btn:disabled { opacity:.5; cursor:not-allowed; }
-.form { display:flex; flex-direction:column; gap:.95rem; }
-.form-row { display:grid; grid-template-columns:1fr 1fr; gap:.95rem; }
-.field { display:flex; flex-direction:column; gap:.3rem; }
-.field label { font-size:.71rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
-.field input,.field select,.field textarea { padding:.6rem .9rem; border:1.5px solid var(--border2); border-radius:8px; font-size:.86rem; font-family:var(--font); color:var(--text); background:var(--white); outline:none; transition:border-color .15s,box-shadow .15s; }
-.field input:focus,.field select:focus,.field textarea:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,.12); }
-.field textarea { resize:vertical; min-height:80px; }
-.inline-check { display:flex; align-items:center; gap:.5rem; font-size:.83rem; color:var(--muted); cursor:pointer; padding-top:1.5rem; }
-.inline-check input { accent-color:var(--blue); width:15px; height:15px; }
-.form-foot { display:flex; gap:.65rem; padding-top:.4rem; }
-.form-box { background:var(--blue-lt); border:1.5px solid #bfdbfe; border-radius:10px; padding:1.25rem; margin-bottom:1.25rem; }
-.photo-block { display:flex; align-items:center; gap:1.5rem; margin-bottom:1.5rem; padding:1.25rem; background:var(--surface); border-radius:10px; border:1px solid var(--border); }
-.photo-av { position:relative; flex-shrink:0; }
-.photo-av img { width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--border2); }
-.photo-av-ph { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--teal)); display:flex; align-items:center; justify-content:center; font-family:var(--head); font-size:1.6rem; font-weight:700; color:#fff; border:3px solid var(--border2); }
-.photo-edit-btn { position:absolute; bottom:0; right:0; width:26px; height:26px; border-radius:50%; background:var(--blue); border:2px solid white; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .15s; }
-.photo-edit-btn:hover { background:var(--blue-dk); }
-.photo-edit-btn input { display:none; }
-.photo-info-name { font-weight:700; font-size:.9rem; margin-bottom:.2rem; }
-.photo-info-headline { font-size:.78rem; color:var(--teal); font-weight:600; margin-bottom:.5rem; }
-.tl { display:flex; flex-direction:column; gap:.85rem; }
-.tl-item { background:var(--surface); border:1.5px solid var(--border); border-radius:10px; padding:1.1rem 1.25rem; display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; transition:all .15s; }
-.tl-item:hover { border-color:var(--border2); box-shadow:var(--shadow); }
-.tl-left { flex:1; }
-.tl-title { font-weight:700; font-size:.92rem; color:var(--text); }
-.tl-sub { font-size:.8rem; color:var(--blue); font-weight:600; margin-top:.15rem; }
-.tl-meta { font-size:.74rem; color:var(--muted); margin-top:.25rem; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
-.tl-desc { font-size:.8rem; color:var(--muted); margin-top:.5rem; line-height:1.65; }
-.tl-actions { display:flex; gap:.35rem; flex-shrink:0; }
-.badge { display:inline-flex; font-size:.65rem; font-weight:700; padding:.15rem .55rem; border-radius:20px; }
-.badge-blue { background:var(--blue-lt); color:var(--blue-dk); border:1px solid #bfdbfe; }
-.badge-teal { background:var(--teal-lt); color:var(--teal); border:1px solid #99f6e4; }
-.skills-wrap { display:flex; flex-wrap:wrap; gap:.55rem; }
-.skill-chip { display:inline-flex; align-items:center; gap:.4rem; padding:.38rem .85rem; border-radius:20px; font-size:.79rem; font-weight:600; background:var(--surface); border:1.5px solid var(--border2); color:var(--text); transition:all .15s; }
-.skill-chip:hover { border-color:var(--blue); background:var(--blue-lt); }
-.skill-chip-prof { font-size:.67rem; color:var(--light); font-weight:500; }
-.skill-del { background:none; border:none; cursor:pointer; color:var(--light); display:flex; align-items:center; padding:0; transition:color .15s; }
-.skill-del:hover { color:var(--danger); }
-.skill-add-row { display:flex; gap:.6rem; margin-top:1rem; align-items:flex-end; flex-wrap:wrap; }
-.skill-add-row .field { flex:1; min-width:120px; }
-.skill-add-row input,.skill-add-row select { padding:.6rem .9rem; border:1.5px solid var(--border2); border-radius:8px; font-size:.85rem; font-family:var(--font); color:var(--text); background:var(--white); outline:none; transition:border-color .15s; width:100%; }
-.skill-add-row input:focus,.skill-add-row select:focus { border-color:var(--blue); }
-.resume-list { display:flex; flex-direction:column; gap:.65rem; }
-.resume-item { display:flex; align-items:center; justify-content:space-between; gap:1rem; background:var(--surface); border:1.5px solid var(--border); border-radius:10px; padding:.9rem 1.1rem; transition:all .15s; }
-.resume-item:hover { border-color:var(--border2); box-shadow:var(--shadow); }
-.resume-name { font-size:.87rem; font-weight:600; display:flex; align-items:center; gap:.5rem; }
-.resume-date { font-size:.72rem; color:var(--muted); margin-top:.15rem; }
-.resume-actions { display:flex; gap:.35rem; }
-.drop-zone { border:2px dashed var(--border2); border-radius:10px; padding:1.75rem; text-align:center; cursor:pointer; transition:all .2s; margin-top:1rem; display:block; background:var(--surface); }
-.drop-zone:hover { border-color:var(--blue); background:var(--blue-lt); }
-.drop-zone input { display:none; }
-.drop-zone p { font-size:.8rem; color:var(--muted); margin-top:.4rem; }
-.empty { text-align:center; padding:2.5rem 1rem; color:var(--light); }
-.empty svg { opacity:.3; margin-bottom:.75rem; }
-.empty p { font-size:.85rem; }
-.loader { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; gap:1rem; color:var(--muted); }
-.spinner { width:36px; height:36px; border:3px solid var(--border2); border-top-color:var(--blue); border-radius:50%; animation:spin .7s linear infinite; }
-@keyframes spin { to{transform:rotate(360deg)} }
-.toast { position:fixed; bottom:1.75rem; right:1.75rem; background:var(--white); border:1px solid var(--border); padding:.8rem 1.25rem; border-radius:10px; font-size:.83rem; display:flex; align-items:center; gap:.55rem; font-weight:600; box-shadow:var(--shadow-lg); z-index:999; animation:slideIn .25s ease; color:var(--text); }
-.toast.success { border-left:3px solid var(--success); }
-.toast.error   { border-left:3px solid var(--danger); }
-@keyframes slideIn { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
-.err-banner { background:var(--danger-lt); border:1px solid #fecaca; border-radius:8px; padding:.65rem 1rem; font-size:.8rem; color:var(--danger); margin-bottom:1rem; font-weight:500; }
-@media (max-width:780px) { .layout{grid-template-columns:1fr} .sidebar{position:static} .form-row{grid-template-columns:1fr} }
-`;
-
-const Ic = ({ d, size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    {Array.isArray(d) ? d.map((p, i) => <path key={i} d={p} />) : <path d={d} />}
-  </svg>
-);
-const IC = {
-  user:   "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
-  edu:    ["M22 10v6M2 10l10-5 10 5-10 5z","M6 12v5c3 3 9 3 12 0v-5"],
-  work:   ["M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z","M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"],
-  skill:  "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
-  resume: ["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z","M14 2v6h6","M16 13H8","M16 17H8","M10 9H8"],
-  plus:   "M12 5v14M5 12h14",
-  edit:   "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z",
-  trash:  ["M3 6h18","M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6","M10 11v6","M14 11v6","M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"],
-  check:  "M20 6L9 17l-5-5",
-  x:      "M18 6L6 18M6 6l12 12",
-  upload: ["M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4","M17 8l-5-5-5 5","M12 3v12"],
-  camera: ["M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z","M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"],
-  phone:  "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z",
-  pin:    "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
-  money:  ["M12 1v22","M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"],
-  file:   ["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z","M14 2v6h6"],
-  star:   "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
-};
-
-function Toast({ msg, type, onClose }) {
-  useEffect(() => { const t = setTimeout(onClose, 3200); return () => clearTimeout(t); }, [onClose]);
-  return <div className={`toast ${type}`}><Ic d={type === "success" ? IC.check : IC.x} size={14} />{msg}</div>;
-}
-function ErrBox({ err }) {
-  if (!err) return null;
-  const msg = typeof err === "string" ? err
-    : Object.entries(err).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`).join(" | ");
-  return <div className="err-banner">{msg}</div>;
-}
-
-function ProfileTab({ profile, candidateId, onSaved, toast }) {
-  const blank = { full_name: "", phone: "", headline: "", experience_years: 0, current_salary: "", expected_salary: "", location: "", parent_name: "" };
-  const [form, setForm]     = useState(profile ? { ...profile } : blank);
-  const [saving, setSaving] = useState(false);
-  const [err, setErr]       = useState(null);
-  const [imgPreview, setImgPreview] = useState(null);
-  const [imgFile, setImgFile]       = useState(null);
-
-  useEffect(() => {
-    if (profile) {
-      setForm({ ...profile });
-      setImgPreview(profile.profile_image ? `${BASE}${profile.profile_image}` : null);
-    }
-  }, [profile]);
-
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const handleImgChange = (e) => {
-    const file = e.target.files[0]; if (!file) return;
-    setImgFile(file);
-    setImgPreview(URL.createObjectURL(file));
-  };
-
-  const save = async () => {
-    setSaving(true); setErr(null);
-    try {
-      if (imgFile && candidateId) {
-        const fd = new FormData();
-        fd.append("profile_image", imgFile);
-        await api(`/candidates/${candidateId}/`, { method: "PATCH", body: fd });
-        setImgFile(null);
-      }
-      const payload = { ...form };
-      if (!payload.current_salary)  delete payload.current_salary;
-      if (!payload.expected_salary) delete payload.expected_salary;
-      delete payload.profile_image;
-      const result = candidateId
-        ? await api(`/candidates/${candidateId}/`, { method: "PATCH", body: JSON.stringify(payload) })
-        : await api("/candidates/", { method: "POST", body: JSON.stringify(payload) });
-      onSaved(result); toast("Profile saved!", "success");
-    } catch (e) { setErr(e); toast("Save failed", "error"); }
-    setSaving(false);
-  };
-
-  const initials = form.full_name ? form.full_name.trim().split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase() : "?";
-
-  return (
-    <div className="card">
-      <div className="card-head">
-        <div className="card-title"><span className="card-title-icon"><Ic d={IC.user} /></span> Personal Information</div>
-      </div>
-      <div className="card-body">
-        {/* Photo upload block */}
-        <div className="photo-block">
-          <div className="photo-av">
-            {imgPreview
-              ? <img src={imgPreview} alt="Profile" />
-              : <div className="photo-av-ph">{initials}</div>
-            }
-            <label className="photo-edit-btn">
-              <input type="file" accept="image/*" onChange={handleImgChange} />
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
-            </label>
-          </div>
-          <div>
-            <div className="photo-info-name">{form.full_name || "Your Name"}</div>
-            <div className="photo-info-headline">{form.headline || "Add a headline"}</div>
-            <label className="btn btn-ghost btn-sm" style={{ cursor: "pointer" }}>
-              <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleImgChange} />
-              <Ic d={IC.camera} size={13} /> Change Photo
-            </label>
-          </div>
-        </div>
-
-        <ErrBox err={err} />
-        <div className="form">
-          <div className="form-row">
-            <div className="field"><label>Full Name *</label><input value={form.full_name} onChange={e => set("full_name", e.target.value)} placeholder="Your full name" /></div>
-            <div className="field"><label>Phone *</label><input value={form.phone} onChange={e => set("phone", e.target.value)} placeholder="+91XXXXXXXXXX" /></div>
-          </div>
-          <div className="field"><label>Headline</label><input value={form.headline} onChange={e => set("headline", e.target.value)} placeholder="e.g. Senior React Developer | 5 YOE" /></div>
-          <div className="form-row">
-            <div className="field"><label>Location *</label><input value={form.location} onChange={e => set("location", e.target.value)} placeholder="Bangalore, India" /></div>
-            <div className="field"><label>Years of Experience</label><input type="number" min="0" value={form.experience_years} onChange={e => set("experience_years", e.target.value)} /></div>
-          </div>
-          <div className="field"><label>Parent / Guardian Name *</label><input value={form.parent_name} onChange={e => set("parent_name", e.target.value)} placeholder="Parent or guardian full name" /></div>
-          <div className="form-row">
-            <div className="field"><label>Current Salary (₹/yr)</label><input type="number" value={form.current_salary} onChange={e => set("current_salary", e.target.value)} placeholder="800000" /></div>
-            <div className="field"><label>Expected Salary (₹/yr)</label><input type="number" value={form.expected_salary} onChange={e => set("expected_salary", e.target.value)} placeholder="1200000" /></div>
-          </div>
-          <div className="form-foot">
-            <button className="btn btn-teal" onClick={save} disabled={saving}><Ic d={IC.check} size={13} />{saving ? "Saving…" : "Save Profile"}</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function EducationTab({ candidateId, items, onRefresh, toast }) {
-  const blank = { candidate: candidateId, degree: "bachelor", field_of_study: "", institution: "", start_year: "", end_year: "", is_current: false, grade: "" };
-  const [show, setShow] = useState(false);
-  const [edit, setEdit] = useState(null);
-  const [form, setForm] = useState(blank);
-  const [err, setErr]   = useState(null);
-  const [busy, setBusy] = useState(false);
-  const reset    = () => { setForm({ ...blank, candidate: candidateId }); setEdit(null); setShow(false); setErr(null); };
-  const openEdit = (item) => { setForm({ ...item }); setEdit(item); setShow(true); };
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const save = async () => {
-    setBusy(true); setErr(null);
-    try {
-      const payload = { ...form };
-      if (payload.is_current) delete payload.end_year;
-      if (!payload.grade) delete payload.grade;
-      edit ? await api(`/educations/${edit.id}/`, { method: "PATCH", body: JSON.stringify(payload) })
-           : await api("/educations/", { method: "POST", body: JSON.stringify(payload) });
-      toast(edit ? "Updated!" : "Added!", "success"); reset(); onRefresh();
-    } catch (e) { setErr(e); toast("Save failed", "error"); }
-    setBusy(false);
-  };
-  const del = async (id) => {
-    if (!window.confirm("Delete?")) return;
-    try { await api(`/educations/${id}/`, { method: "DELETE" }); toast("Deleted!", "success"); onRefresh(); }
-    catch { toast("Failed", "error"); }
-  };
-  const degreeLabel = (v) => DEGREE_CHOICES.find(d => d.value === v)?.label || v;
-  return (
-    <div className="card">
-      <div className="card-head">
-        <div className="card-title"><span className="card-title-icon"><Ic d={IC.edu} /></span> Education</div>
-        <button className="btn btn-blue btn-sm" onClick={() => { reset(); setShow(true); }}><Ic d={IC.plus} size={13} /> Add</button>
-      </div>
-      <div className="card-body">
-        {show && (
-          <div className="form-box">
-            <ErrBox err={err} />
-            <div className="form">
-              <div className="form-row">
-                <div className="field"><label>Degree *</label>
-                  <select value={form.degree} onChange={e => set("degree", e.target.value)}>
-                    {DEGREE_CHOICES.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
-                </div>
-                <div className="field"><label>Field of Study *</label><input value={form.field_of_study} onChange={e => set("field_of_study", e.target.value)} placeholder="Computer Science" /></div>
-              </div>
-              <div className="field"><label>Institution *</label><input value={form.institution} onChange={e => set("institution", e.target.value)} placeholder="University / College" /></div>
-              <div className="form-row">
-                <div className="field"><label>Start Year *</label><input type="number" value={form.start_year} onChange={e => set("start_year", e.target.value)} placeholder="2019" /></div>
-                <div className="field"><label>Grade / CGPA</label><input value={form.grade} onChange={e => set("grade", e.target.value)} placeholder="8.5 / 10" /></div>
-              </div>
-              <div className="form-row">
-                {!form.is_current && <div className="field"><label>End Year</label><input type="number" value={form.end_year} onChange={e => set("end_year", e.target.value)} placeholder="2023" /></div>}
-                <label className="inline-check"><input type="checkbox" checked={form.is_current} onChange={e => set("is_current", e.target.checked)} />Currently studying</label>
-              </div>
-              <div className="form-foot">
-                <button className="btn btn-teal" onClick={save} disabled={busy}><Ic d={IC.check} size={13} />{busy ? "Saving…" : edit ? "Update" : "Add"}</button>
-                <button className="btn btn-ghost" onClick={reset}><Ic d={IC.x} size={13} />Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
-        {items.length === 0 && !show ? <div className="empty"><Ic d={IC.edu} size={40} /><p>No education added yet</p></div>
-          : <div className="tl">{items.map(item => (
-              <div className="tl-item" key={item.id}>
-                <div className="tl-left">
-                  <div className="tl-title">{item.institution}</div>
-                  <div className="tl-sub">{degreeLabel(item.degree)}{item.field_of_study ? ` · ${item.field_of_study}` : ""}</div>
-                  <div className="tl-meta">
-                    <span>{item.start_year} – {item.is_current ? "Present" : item.end_year || "—"}</span>
-                    {item.grade && <span>· {item.grade}</span>}
-                    {item.is_current && <span className="badge badge-teal">Current</span>}
-                  </div>
-                </div>
-                <div className="tl-actions">
-                  <button className="btn btn-ghost btn-sm" onClick={() => openEdit(item)}><Ic d={IC.edit} size={13} /></button>
-                  <button className="btn btn-danger btn-sm" onClick={() => del(item.id)}><Ic d={IC.trash} size={13} /></button>
-                </div>
-              </div>
-            ))}</div>
-        }
-      </div>
-    </div>
-  );
-}
-
-function ExperienceTab({ candidateId, items, onRefresh, toast }) {
-  const blank = { candidate: candidateId, job_title: "", company_name: "", employment_type: "full_time", location: "", start_date: "", end_date: "", is_current: false, description: "", salary: "" };
-  const [show, setShow] = useState(false);
-  const [edit, setEdit] = useState(null);
-  const [form, setForm] = useState(blank);
-  const [err, setErr]   = useState(null);
-  const [busy, setBusy] = useState(false);
-  const reset    = () => { setForm({ ...blank, candidate: candidateId }); setEdit(null); setShow(false); setErr(null); };
-  const openEdit = (item) => { setForm({ ...item, salary: item.salary || "" }); setEdit(item); setShow(true); };
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const save = async () => {
-    setBusy(true); setErr(null);
-    try {
-      const payload = { ...form };
-      if (payload.is_current) payload.end_date = null;
-      if (!payload.salary) delete payload.salary;
-      edit ? await api(`/work-experiences/${edit.id}/`, { method: "PATCH", body: JSON.stringify(payload) })
-           : await api("/work-experiences/", { method: "POST", body: JSON.stringify(payload) });
-      toast(edit ? "Updated!" : "Added!", "success"); reset(); onRefresh();
-    } catch (e) { setErr(e); toast("Save failed", "error"); }
-    setBusy(false);
-  };
-  const del = async (id) => {
-    if (!window.confirm("Delete?")) return;
-    try { await api(`/work-experiences/${id}/`, { method: "DELETE" }); toast("Deleted!", "success"); onRefresh(); }
-    catch { toast("Failed", "error"); }
-  };
-  const empLabel = (v) => EMP_CHOICES.find(e => e.value === v)?.label || v;
-  const fmt = (d) => d ? new Date(d).toLocaleDateString("en-IN", { month: "short", year: "numeric" }) : "";
-  return (
-    <div className="card">
-      <div className="card-head">
-        <div className="card-title"><span className="card-title-icon"><Ic d={IC.work} /></span> Work Experience</div>
-        <button className="btn btn-blue btn-sm" onClick={() => { reset(); setShow(true); }}><Ic d={IC.plus} size={13} /> Add</button>
-      </div>
-      <div className="card-body">
-        {show && (
-          <div className="form-box">
-            <ErrBox err={err} />
-            <div className="form">
-              <div className="form-row">
-                <div className="field"><label>Job Title *</label><input value={form.job_title} onChange={e => set("job_title", e.target.value)} placeholder="Software Engineer" /></div>
-                <div className="field"><label>Company Name *</label><input value={form.company_name} onChange={e => set("company_name", e.target.value)} placeholder="Company Ltd." /></div>
-              </div>
-              <div className="form-row">
-                <div className="field"><label>Employment Type</label>
-                  <select value={form.employment_type} onChange={e => set("employment_type", e.target.value)}>
-                    {EMP_CHOICES.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
-                  </select>
-                </div>
-                <div className="field"><label>Location</label><input value={form.location} onChange={e => set("location", e.target.value)} placeholder="Bangalore" /></div>
-              </div>
-              <div className="form-row">
-                <div className="field"><label>Start Date *</label><input type="date" value={form.start_date} onChange={e => set("start_date", e.target.value)} /></div>
-                {!form.is_current && <div className="field"><label>End Date</label><input type="date" value={form.end_date} onChange={e => set("end_date", e.target.value)} /></div>}
-              </div>
-              <label className="inline-check" style={{ paddingTop: 0 }}>
-                <input type="checkbox" checked={form.is_current} onChange={e => set("is_current", e.target.checked)} />I currently work here
-              </label>
-              <div className="field"><label>Salary (₹/yr)</label><input type="number" value={form.salary} onChange={e => set("salary", e.target.value)} placeholder="800000" /></div>
-              <div className="field"><label>Description</label><textarea value={form.description} onChange={e => set("description", e.target.value)} placeholder="Describe your role…" /></div>
-              <div className="form-foot">
-                <button className="btn btn-teal" onClick={save} disabled={busy}><Ic d={IC.check} size={13} />{busy ? "Saving…" : edit ? "Update" : "Add"}</button>
-                <button className="btn btn-ghost" onClick={reset}><Ic d={IC.x} size={13} />Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
-        {items.length === 0 && !show ? <div className="empty"><Ic d={IC.work} size={40} /><p>No experience added yet</p></div>
-          : <div className="tl">{items.map(item => (
-              <div className="tl-item" key={item.id}>
-                <div className="tl-left">
-                  <div className="tl-title">{item.job_title}</div>
-                  <div className="tl-sub">{item.company_name}{item.location ? ` · ${item.location}` : ""}</div>
-                  <div className="tl-meta">
-                    <span>{fmt(item.start_date)} – {item.is_current ? "Present" : fmt(item.end_date)}</span>
-                    <span className="badge badge-blue">{empLabel(item.employment_type)}</span>
-                    {item.is_current && <span className="badge badge-teal">Current</span>}
-                    {item.salary && <span style={{ color: "var(--teal)", fontWeight: 700 }}>₹{Number(item.salary).toLocaleString("en-IN")}/yr</span>}
-                  </div>
-                  {item.description && <div className="tl-desc">{item.description}</div>}
-                </div>
-                <div className="tl-actions">
-                  <button className="btn btn-ghost btn-sm" onClick={() => openEdit(item)}><Ic d={IC.edit} size={13} /></button>
-                  <button className="btn btn-danger btn-sm" onClick={() => del(item.id)}><Ic d={IC.trash} size={13} /></button>
-                </div>
-              </div>
-            ))}</div>
-        }
-      </div>
-    </div>
-  );
-}
-
-function SkillsTab({ candidateId, items, onRefresh, toast }) {
-  const [name, setName] = useState("");
-  const [prof, setProf] = useState("intermediate");
-  const [yoe, setYoe]   = useState(0);
-  const [busy, setBusy] = useState(false);
-  const add = async () => {
-    if (!name.trim()) return; setBusy(true);
-    try {
-      await api("/skills/", { method: "POST", body: JSON.stringify({ candidate: candidateId, skill_name: name.trim(), proficiency: prof, years_of_experience: Number(yoe) }) });
-      setName(""); setYoe(0); toast("Skill added!", "success"); onRefresh();
-    } catch (e) { toast(e?.non_field_errors?.[0] || "Failed", "error"); }
-    setBusy(false);
-  };
-  const del = async (id) => {
-    try { await api(`/skills/${id}/`, { method: "DELETE" }); toast("Removed!", "success"); onRefresh(); }
-    catch { toast("Failed", "error"); }
-  };
-  const profLabel = (v) => PROF_CHOICES.find(p => p.value === v)?.label || v;
-  return (
-    <div className="card">
-      <div className="card-head">
-        <div className="card-title"><span className="card-title-icon"><Ic d={IC.skill} /></span> Skills</div>
-        <span style={{ fontSize: ".75rem", color: "var(--muted)", fontWeight: 600 }}>{items.length} skills</span>
-      </div>
-      <div className="card-body">
-        {items.length === 0 ? <div className="empty"><Ic d={IC.star} size={40} /><p>No skills added yet</p></div>
-          : <div className="skills-wrap">{items.map(s => (
-              <span className="skill-chip" key={s.id}>
-                {s.skill_name}
-                <span className="skill-chip-prof">· {profLabel(s.proficiency)}</span>
-                {s.years_of_experience > 0 && <span className="skill-chip-prof">{s.years_of_experience}y</span>}
-                <button className="skill-del" onClick={() => del(s.id)}><Ic d={IC.x} size={11} /></button>
-              </span>
-            ))}</div>
-        }
-        <div className="skill-add-row">
-          <div className="field" style={{ flex: 2 }}><label>Skill Name</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="React, Python…" onKeyDown={e => e.key === "Enter" && add()} />
-          </div>
-          <div className="field"><label>Proficiency</label>
-            <select value={prof} onChange={e => setProf(e.target.value)}>
-              {PROF_CHOICES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-            </select>
-          </div>
-          <div className="field" style={{ width: 80 }}><label>Yrs</label>
-            <input type="number" min="0" value={yoe} onChange={e => setYoe(e.target.value)} />
-          </div>
-          <button className="btn btn-teal" style={{ alignSelf: "flex-end" }} onClick={add} disabled={busy}>
-            <Ic d={IC.plus} size={14} />{busy ? "…" : "Add"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ResumesTab({ candidateId, items, onRefresh, toast }) {
-  const [uploading, setUploading] = useState(false);
-  const upload = async (e) => {
-    const file = e.target.files[0]; if (!file) return; setUploading(true);
-    const fd = new FormData();
-    fd.append("file", file); fd.append("title", file.name.replace(/\.[^.]+$/, "")); fd.append("candidate", candidateId);
-    try { await api("/resumes/", { method: "POST", body: fd }); toast("Uploaded!", "success"); onRefresh(); }
-    catch { toast("Upload failed", "error"); }
-    setUploading(false); e.target.value = "";
-  };
-  const setDefault = async (id) => {
-    try { await api(`/resumes/${id}/set-default/`, { method: "PATCH" }); toast("Set as default!", "success"); onRefresh(); }
-    catch { toast("Failed", "error"); }
-  };
-  const del = async (id) => {
-    if (!window.confirm("Delete?")) return;
-    try { await api(`/resumes/${id}/`, { method: "DELETE" }); toast("Deleted!", "success"); onRefresh(); }
-    catch { toast("Failed", "error"); }
-  };
-  return (
-    <div className="card">
-      <div className="card-head">
-        <div className="card-title"><span className="card-title-icon"><Ic d={IC.resume} /></span> Resumes</div>
-        <span style={{ fontSize: ".75rem", color: "var(--muted)", fontWeight: 600 }}>{items.length} files</span>
-      </div>
-      <div className="card-body">
-        {items.length > 0 && (
-          <div className="resume-list">{items.map(r => (
-            <div className="resume-item" key={r.id}>
-              <div>
-                <div className="resume-name">
-                  <Ic d={IC.file} size={15} style={{ color: "var(--blue)" }} />
-                  {r.title || r.file?.split("/").pop() || "Resume"}
-                  {r.is_default && <span className="badge badge-teal">Default</span>}
-                </div>
-                {r.created_at && <div className="resume-date">{new Date(r.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>}
-              </div>
-              <div className="resume-actions">
-                {r.file && <a className="btn btn-ghost btn-sm" href={`${BASE}${r.file}`} target="_blank" rel="noreferrer">View</a>}
-                {!r.is_default && <button className="btn btn-ghost btn-sm" onClick={() => setDefault(r.id)}><Ic d={IC.star} size={12} /> Default</button>}
-                <button className="btn btn-danger btn-sm" onClick={() => del(r.id)}><Ic d={IC.trash} size={13} /></button>
-              </div>
-            </div>
-          ))}</div>
-        )}
-        <label className="drop-zone">
-          <input type="file" accept=".pdf,.doc,.docx" onChange={upload} disabled={uploading} />
-          <div style={{ color: "var(--blue)" }}><Ic d={IC.upload} size={28} /></div>
-          <p>{uploading ? "Uploading…" : "Click to upload — PDF, DOC, DOCX (max 10MB)"}</p>
-        </label>
-      </div>
-    </div>
-  );
-}
-
-export default function CandidateProfile() {
-  const [tab, setTab]         = useState("profile");
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState(null);
-  const [education, setEdu]   = useState([]);
-  const [experience, setExp]  = useState([]);
-  const [skills, setSkills]   = useState([]);
-  const [resumes, setResumes] = useState([]);
-  const [toast, setToast]     = useState(null);
-  const showToast = useCallback((msg, type = "success") => setToast({ msg, type }), []);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const cList = await api("/candidates/");
-      const candidates = cList?.results ?? (Array.isArray(cList) ? cList : []);
-      const p = candidates[0] || null;
-      setProfile(p);
-      if (p) {
-        const id = p.id;
-        const [edu, exp, sk, res] = await Promise.allSettled([
-          api(`/educations/?candidate=${id}`),
-          api(`/work-experiences/?candidate=${id}`),
-          api(`/skills/?candidate=${id}`),
-          api(`/resumes/?candidate=${id}`),
-        ]);
-        const unwrap = r => r.status === "fulfilled" ? (r.value?.results ?? r.value ?? []) : [];
-        setEdu(unwrap(edu)); setExp(unwrap(exp)); setSkills(unwrap(sk)); setResumes(unwrap(res));
-      }
-    } catch (e) { console.error(e); }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const tabs = [
-    { key: "profile",    label: "Profile",    icon: IC.user,   count: null },
-    { key: "education",  label: "Education",  icon: IC.edu,    count: education.length },
-    { key: "experience", label: "Experience", icon: IC.work,   count: experience.length },
-    { key: "skills",     label: "Skills",     icon: IC.skill,  count: skills.length },
-    { key: "resumes",    label: "Resumes",    icon: IC.resume, count: resumes.length },
+  const skills = [
+    { name: 'Product Design',     blue: true  },
+    { name: 'UI/UX Strategy',     blue: true  },
+    { name: 'Design Systems',     blue: true  },
+    { name: 'Figma Mastery',      blue: true  },
+    { name: 'Prototyping',        blue: true  },
+    { name: 'User Research',      blue: false },
+    { name: 'HTML/CSS',           blue: false },
+    { name: 'Interaction Design', blue: false },
+    { name: '+16 more',           blue: false },
   ];
 
-  const initials = profile?.full_name
-    ? profile.full_name.trim().split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
-    : "?";
-  const imgSrc = profile?.profile_image ? `${BASE}${profile.profile_image}` : null;
+  const experiences = [
+    {
+      icon: '📋',
+      title: 'Senior Product Designer',
+      company: 'TechFlow Systems • Full-time',
+      period: 'Jan 2021 — Present (3.5 yrs)',
+      desc: "Leading the design effort for the flagship SaaS product. Managed a team of 4 junior designers and established the company's first scalable design system."
+    },
+    {
+      icon: '🔗',
+      title: 'UX/UI Designer',
+      company: 'Innova Digital Agency',
+      period: 'Mar 2017 — Dec 2020 (3.9 yrs)',
+      desc: 'Worked on multiple high-profile client projects including mobile banking apps and e-commerce platforms. Improved user retention by 25% for a key retail client.'
+    },
+  ];
 
   return (
-    <>
-      <style>{S}</style>
-      <div className="shell">
-        <header className="topbar">
-          <div className="topbar-brand">Job<span>Portal</span></div>
-          <div className="topbar-right">
-            <span className="topbar-name">{profile?.full_name || "My Account"}</span>
-            {imgSrc ? <img src={imgSrc} alt="avatar" className="topbar-av" /> : <div className="topbar-av-ph">{initials}</div>}
-          </div>
-        </header>
+    <div style={{ fontFamily: "'Inter', sans-serif", minHeight: '100vh', background: '#F6F7F8', display: 'flex', flexDirection: 'column' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .tab-link { padding: 16px 16px 14px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; background: none; font-family: 'Inter', sans-serif; transition: color 0.2s; }
+        .skill-tag-blue { background: rgba(19,127,236,0.1); border: 1px solid rgba(19,127,236,0.2); color: #137FEC; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 9999px; }
+        .skill-tag-gray { background: #F1F5F9; border: 1px solid #E2E8F0; color: #475569; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 9999px; }
+        .nav-link { color: #475569; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; cursor: pointer; }
+        .nav-link:hover { color: #137FEC; }
+      `}</style>
 
-        {loading ? (
-          <div className="loader"><div className="spinner" /><span>Loading profile…</span></div>
-        ) : (
-          <div className="layout">
-            <aside className="sidebar">
-              <div className="sb-hero">
-                <div className="sb-cover" />
-                <div className="sb-av-wrap">
-                  {imgSrc ? <img src={imgSrc} alt="Profile" className="sb-av-img" /> : <div className="sb-av-ph">{initials}</div>}
+      {/* NAVBAR */}
+      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 40px', height: '65px', background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* ✅ Logo → dashboard */}
+          <div onClick={() => navigate('/candidate-dashboard')} style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <span style={{ fontSize: '28px' }}>🌐</span>
+          </div>
+          <span onClick={() => navigate('/candidate-dashboard')} style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '-0.45px', color: '#0F172A', cursor: 'pointer' }}>CareerPort</span>
+        </div>
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          {/* ✅ Nav links */}
+          <span onClick={() => navigate('/jobs')} className="nav-link">Jobs</span>
+          <span onClick={() => navigate('/community')} className="nav-link">Network</span>
+          <span onClick={() => navigate('/candidate-profile')} style={{ color: '#137FEC', textDecoration: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>Profile</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* ✅ Notification bell */}
+          <button onClick={() => navigate('/notifications')} style={{ width: '40px', height: '40px', background: '#F1F5F9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>🔔</button>
+          {/* ✅ Settings */}
+          <button onClick={() => navigate('/profile-settings')} style={{ width: '40px', height: '40px', background: '#F1F5F9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>⚙️</button>
+          {/* ✅ Avatar → settings */}
+          <div onClick={() => navigate('/profile-settings')} style={{ width: '40px', height: '40px', background: 'rgba(19,127,236,0.2)', borderRadius: '50%', border: '2px solid rgba(19,127,236,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <span style={{ fontSize: '18px' }}>👤</span>
+          </div>
+        </div>
+      </nav>
+
+      {/* MAIN */}
+      <div style={{ flex: 1, padding: '32px 160px' }}>
+        <div style={{ display: 'flex', gap: '32px', maxWidth: '960px', margin: '0 auto' }}>
+
+          {/* LEFT SIDEBAR */}
+          <div style={{ width: '309px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+            {/* Profile Card */}
+            <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '24px', boxShadow: '0px 1px 2px rgba(0,0,0,0.05)' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', position: 'relative' }}>
+                <div style={{ position: 'relative', width: '128px', height: '128px' }}>
+                  <div style={{ width: '128px', height: '128px', background: 'linear-gradient(135deg, #e0f0ff, #c7e0ff)', borderRadius: '50%', border: '4px solid #fff', boxShadow: '0px 10px 15px -3px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '48px' }}>👤</div>
+                  <div style={{ position: 'absolute', bottom: '4px', right: '4px', width: '24px', height: '24px', background: '#22C55E', borderRadius: '50%', border: '4px solid #fff' }} />
                 </div>
               </div>
-              <div className="sb-info">
-                <div className="sb-name">{profile?.full_name || "Your Name"}</div>
-                {profile?.headline && <div className="sb-headline">{profile.headline}</div>}
-                <div className="sb-meta">
-                  {profile?.phone    && <div className="sb-meta-row"><Ic d={IC.phone} size={12} /><strong>{profile.phone}</strong></div>}
-                  {profile?.location && <div className="sb-meta-row"><Ic d={IC.pin} size={12} /><strong>{profile.location}</strong></div>}
-                  {profile?.experience_years > 0 && <div className="sb-meta-row"><Ic d={IC.work} size={12} /><strong>{profile.experience_years} yrs exp</strong></div>}
-                  {(profile?.current_salary || profile?.expected_salary) && (
-                    <div className="sb-meta-row">
-                      <Ic d={IC.money} size={12} />
-                      <strong>
-                        {profile.current_salary ? `₹${Number(profile.current_salary).toLocaleString("en-IN")}` : "—"}
-                        {" → "}
-                        {profile.expected_salary ? `₹${Number(profile.expected_salary).toLocaleString("en-IN")}` : "—"}
-                      </strong>
-                    </div>
-                  )}
+
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#0F172A', marginBottom: '4px' }}>Alex Rivera</h1>
+                <p style={{ fontSize: '16px', fontWeight: '500', color: '#137FEC', marginBottom: '4px' }}>Senior Product Designer</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '12px', color: '#64748B' }}>📍</span>
+                  <span style={{ fontSize: '14px', color: '#64748B' }}>San Francisco, CA • Remote</span>
                 </div>
-                {skills.length > 0 && (
-                  <div className="sb-chips">
-                    {skills.slice(0, 5).map(s => <span className="sb-chip" key={s.id}>{s.skill_name}</span>)}
-                    {skills.length > 5 && <span className="sb-chip">+{skills.length - 5}</span>}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* ✅ Edit Profile → profile-settings */}
+                <button onClick={() => navigate('/profile-settings')} style={{ width: '100%', padding: '10px', background: '#137FEC', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>Edit Profile</button>
+                {/* ✅ Download CV → resume page */}
+                <button onClick={() => navigate('/resumes')} style={{ width: '100%', padding: '10px', background: '#F1F5F9', color: '#334155', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>Download CV</button>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '24px', boxShadow: '0px 1px 2px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A', marginBottom: '16px' }}>Quick Stats</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {[
+                  { value: '8',  label: 'YEARS EXP.',  path: '/work-experience' },
+                  { value: '12', label: 'PROJECTS',    path: '/portfolio' },
+                  { value: '24', label: 'SKILLS',      path: '/skills' },
+                  { value: '4',  label: 'AWARDS',      path: '/certifications' },
+                ].map(stat => (
+                  <div key={stat.label} onClick={() => navigate(stat.path)} style={{ background: 'rgba(248,250,252,0.5)', border: '1px solid #F1F5F9', borderRadius: '8px', padding: '12px', textAlign: 'center', cursor: 'pointer' }}>
+                    <p style={{ fontSize: '24px', fontWeight: '700', color: '#137FEC', marginBottom: '4px' }}>{stat.value}</p>
+                    <p style={{ fontSize: '12px', fontWeight: '500', color: '#64748B', letterSpacing: '0.6px', textTransform: 'uppercase' }}>{stat.label}</p>
                   </div>
-                )}
+                ))}
               </div>
-              <nav className="nav">
-                {tabs.map(t => (
-                  <button key={t.key} className={`nav-item ${tab === t.key ? "active" : ""}`} onClick={() => setTab(t.key)}>
-                    <Ic d={t.icon} size={15} />{t.label}
-                    {t.count !== null && <span className="nav-dot">{t.count}</span>}
+            </div>
+
+            {/* Contact Info */}
+            <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '24px', boxShadow: '0px 1px 2px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A', marginBottom: '16px' }}>Contact Info</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {[
+                  { icon: '✉️', label: 'EMAIL',     value: 'alex.rivera@design.com', link: false },
+                  { icon: '📱', label: 'PHONE',     value: '+1 (555) 902-3456',       link: false },
+                  { icon: '🔗', label: 'PORTFOLIO', value: 'arivera.design',          link: true  },
+                ].map(item => (
+                  <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: item.link ? 'pointer' : 'default' }}
+                    onClick={() => item.link && window.open('https://' + item.value, '_blank')}>
+                    <div style={{ width: '36px', height: '32px', background: 'rgba(19,127,236,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>{item.icon}</div>
+                    <div>
+                      <p style={{ fontSize: '12px', fontWeight: '600', color: '#64748B', letterSpacing: '0.6px', textTransform: 'uppercase' }}>{item.label}</p>
+                      <p style={{ fontSize: '14px', fontWeight: '500', color: item.link ? '#137FEC' : '#0F172A' }}>{item.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT CONTENT */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+            {/* Tabs Card */}
+            <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0px 1px 2px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', borderBottom: '1px solid #E2E8F0', padding: '0 24px' }}>
+                {tabs.map(tab => (
+                  <button key={tab} className="tab-link" onClick={() => setActiveTab(tab)} style={{ color: activeTab === tab ? '#137FEC' : '#64748B', borderBottom: activeTab === tab ? '2px solid #137FEC' : '2px solid transparent', marginBottom: '-1px' }}>
+                    {tab}
                   </button>
                 ))}
-              </nav>
-            </aside>
+              </div>
 
-            <main className="main">
-              {tab === "profile"    && <ProfileTab    profile={profile} candidateId={profile?.id} onSaved={(p) => { setProfile(p); load(); }} toast={showToast} />}
-              {tab === "education"  && profile?.id && <EducationTab  candidateId={profile.id} items={education}  onRefresh={load} toast={showToast} />}
-              {tab === "experience" && profile?.id && <ExperienceTab candidateId={profile.id} items={experience} onRefresh={load} toast={showToast} />}
-              {tab === "skills"     && profile?.id && <SkillsTab     candidateId={profile.id} items={skills}     onRefresh={load} toast={showToast} />}
-              {tab === "resumes"    && profile?.id && <ResumesTab    candidateId={profile.id} items={resumes}    onRefresh={load} toast={showToast} />}
-              {!profile?.id && tab !== "profile" && (
-                <div className="card"><div className="card-body">
-                  <div className="empty"><Ic d={IC.user} size={40} /><p>Save your profile first to add {tab}.</p></div>
-                </div></div>
-              )}
-            </main>
+              <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+
+                {/* About Me */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: '#137FEC' }}>👤</span> About Me
+                  </h3>
+                  <p style={{ fontSize: '16px', color: '#475569', lineHeight: '26px' }}>
+                    Passionate Product Designer with over 8 years of experience in creating user-centered digital products. Specialist in Design Systems and interactive prototyping. I thrive on bridging the gap between design and engineering to deliver seamless user experiences.
+                  </p>
+                </div>
+
+                {/* Work Experience */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#137FEC' }}>💼</span> Work Experience
+                    </h3>
+                    {/* ✅ Add New → work experience page */}
+                    <button onClick={() => navigate('/work-experience')} style={{ background: 'none', border: 'none', color: '#137FEC', fontSize: '14px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif", display: 'flex', alignItems: 'center', gap: '4px' }}>+ Add New</button>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    {experiences.map((exp, i) => (
+                      <div key={i} style={{ display: 'flex', gap: '16px' }}>
+                        <div style={{ marginTop: '4px' }}>
+                          <div style={{ width: '48px', height: '48px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{exp.icon}</div>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <div>
+                              <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A' }}>{exp.title}</h4>
+                              <p style={{ fontSize: '16px', fontWeight: '500', color: '#475569' }}>{exp.company}</p>
+                            </div>
+                            <p style={{ fontSize: '14px', color: '#94A3B8', whiteSpace: 'nowrap' }}>{exp.period}</p>
+                          </div>
+                          <p style={{ fontSize: '14px', color: '#475569', lineHeight: '23px' }}>{exp.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Education */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: '#137FEC' }}>🎓</span> Education
+                  </h3>
+                  {/* ✅ Click education to go to education page */}
+                  <div onClick={() => navigate('/education')} style={{ display: 'flex', gap: '16px', cursor: 'pointer' }}>
+                    <div style={{ width: '48px', height: '48px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0, marginTop: '4px' }}>🎓</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div>
+                          <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A' }}>BFA in Graphic Design</h4>
+                          <p style={{ fontSize: '16px', fontWeight: '500', color: '#475569' }}>Rhode Island School of Design</p>
+                        </div>
+                        <p style={{ fontSize: '14px', color: '#94A3B8' }}>2013 — 2017</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Top Skills */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: '#137FEC' }}>⚙️</span> Top Skills
+                  </h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {skills.map(skill => (
+                      /* ✅ Click skill → skill management */
+                      <span key={skill.name} className={skill.blue ? 'skill-tag-blue' : 'skill-tag-gray'}
+                        onClick={() => navigate('/skills')} style={{ cursor: 'pointer' }}>
+                        {skill.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA Card */}
+            <div style={{ background: 'rgba(19,127,236,0.05)', border: '1px solid rgba(19,127,236,0.2)', borderRadius: '12px', padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '48px', height: '48px', background: '#137FEC', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🚀</div>
+                <div>
+                  <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A', marginBottom: '4px' }}>Ready for your next challenge?</h4>
+                  <p style={{ fontSize: '14px', color: '#64748B', lineHeight: '20px' }}>Your profile is 85% complete. Completing it increases visibility to recruiters by 40%.</p>
+                </div>
+              </div>
+              {/* ✅ Finish Profile → profile-setup */}
+              <button onClick={() => navigate('/profile-setup')} style={{ background: '#137FEC', color: '#fff', border: 'none', padding: '8px 27px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap', height: '56px' }}>
+                Finish Profile
+              </button>
+            </div>
           </div>
-        )}
-        {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+        </div>
       </div>
-    </>
+
+      {/* FOOTER */}
+      <footer style={{ background: '#FFFFFF', borderTop: '1px solid #E2E8F0', padding: '32px 40px', textAlign: 'center' }}>
+        <p style={{ fontSize: '14px', color: '#64748B' }}>© 2024 CareerPort. All rights reserved.</p>
+      </footer>
+    </div>
   );
-}
+};
+
+export default CandidateProfile;
