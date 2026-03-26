@@ -10,7 +10,8 @@
     "react-hook-form": "^7.45.0",
     "react-dropzone": "^14.2.3",
     "lucide-react": "^0.263.1",
-    "clsx": "^1.2.1"
+    "clsx": "^1.2.1",
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -35,10 +36,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@types/node": "^16.18.11"
   }
 }
