@@ -1,175 +1,240 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import React, { useState } from "react";
 
-// ── Auth Pages ──
-import Login from './pages/Login';
-import CandidateRegistration from './pages/CandidateRegistration';
-import ForgotPassword from './pages/ForgotPassword';
-import OtpVerification from './pages/OtpVerification';
-import ResetPassword from './pages/ResetPassword';
+export default function JobApprovalWorkflow() {
 
-// ── Candidate Pages ──
-import CandidateDashboard from './pages/CandidateDashboard';
-import CandidateProfile from './pages/CandidateProfile';
-import ProfileSettings from './pages/ProfileSettings';
+  const [activeTab, setActiveTab] = useState("Pending");
 
-// ── Employer Pages ──
-import CompanyDashboard from './pages/CompanyDashboard';
-import EmployerPostJob from './pages/EmployerPostJob';
-import EmployerCandidates from './pages/EmployerCandidates';
-import EmployerProfile from './pages/EmployerProfile';
-import EmployerRegistration from './pages/EmployerRegistration';
-
-// ── Job Pages ──
-import Jobs from './pages/Jobs';
-import SavedJobs from './pages/SavedJobs';
-
-// ── Resume Pages ──
-import ResumeUpload from './pages/ResumeUpload';
-import CandidateResumes from './components/CandidateResumes';
-
-// ── Notifications ──
-import NotificationsPage, { NotificationBell } from './pages/Notifications';
-
-// ── Assessments & Certifications ──
-import OnlineAssessmentTest from './components/OnlineAssessmentTest';
-import CertificationTracking from './components/CertificationTracking'; // ✅ YOUR FEATURE
-
-// ─────────────────────────────────────────
-// Private Route
-// ─────────────────────────────────────────
-const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/" />;
-};
-
-// ─────────────────────────────────────────
-// Navbar
-// ─────────────────────────────────────────
-function Navbar() {
-  const location = useLocation();
-  const storedUser = localStorage.getItem('user');
-
-  let userRole = null;
-  if (storedUser) {
-    try {
-      userRole = JSON.parse(storedUser).role || null;
-    } catch {
-      userRole = null;
+  const [jobs, setJobs] = useState([
+    {
+      id: 1,
+      title: "Senior Product Designer",
+      company: "Stellar Tech",
+      submitted: "2h ago",
+      priority: "Medium",
+      status: "Pending"
+    },
+    {
+      id: 2,
+      title: "Frontend Developer",
+      company: "Code Labs",
+      submitted: "5h ago",
+      priority: "High",
+      status: "Pending"
+    },
+    {
+      id: 3,
+      title: "Backend Engineer",
+      company: "TechNova",
+      submitted: "1 day ago",
+      priority: "Low",
+      status: "Approved"
     }
-  }
-
-  const hiddenRoutes = new Set([
-    '/', '/register', '/forgot-password', '/otp-verification', '/reset-password'
   ]);
 
-  if (hiddenRoutes.has(location.pathname)) return null;
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [note, setNote] = useState("");
 
-  const navLink = (to, label) => (
-    <Link to={to} style={{
-      padding: '8px 18px',
-      borderRadius: '8px',
-      textDecoration: 'none',
-      fontSize: '13px',
-      fontWeight: '700',
-      background: location.pathname === to ? '#ff6b35' : 'transparent',
-      color: location.pathname === to ? '#fff' : '#555',
-      border: '1px solid',
-      borderColor: location.pathname === to ? '#ff6b35' : '#222'
-    }}>
-      {label}
-    </Link>
-  );
+  const approveJob = (id) => {
+    setJobs(
+      jobs.map(job =>
+        job.id === id ? { ...job, status: "Approved" } : job
+      )
+    );
+  };
+
+  const rejectJob = (id) => {
+    setJobs(
+      jobs.map(job =>
+        job.id === id ? { ...job, status: "Rejected" } : job
+      )
+    );
+  };
+
+  const filteredJobs = jobs.filter(job => job.status === activeTab);
 
   return (
-    <nav style={{
-      background: '#0d0d0d',
-      padding: '12px 24px',
-      display: 'flex',
-      justifyContent: 'space-between'
-    }}>
-      <div style={{ color: '#fff', fontWeight: '800' }}>
-        JobPortal
+    <div style={{ display: "flex", height: "100vh", fontFamily: "Arial" }}>
+
+      {/* SIDEBAR */}
+      <div style={{
+        width: "220px",
+        background: "#f5f6fa",
+        padding: "20px"
+      }}>
+        <h3>Admin Portal</h3>
+
+        <p style={{ marginTop: "20px" }}>Dashboard</p>
+        <p style={{ color: "#2563eb", fontWeight: "bold" }}>Job Queue</p>
+        <p>Users</p>
+        <p>Companies</p>
+        <p>Reports</p>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        {userRole === 'employer' ? (
-          <>
-            {navLink('/company-dashboard', 'Dashboard')}
-            {navLink('/employer/post-job', 'Post Job')}
-            {navLink('/employer/candidates', 'Candidates')}
-            {navLink('/employer/profile', 'Profile')}
-            {navLink('/assessments', 'Assessments')}
-            {navLink('/certifications', 'Certifications')}
-          </>
-        ) : (
-          <>
-            {navLink('/candidate-dashboard', 'Dashboard')}
-            {navLink('/candidate-profile', 'Profile')}
-            {navLink('/jobs', 'Jobs')}
-            {navLink('/saved-jobs', 'Saved')}
-            {navLink('/resumes', 'Resumes')}
-            {navLink('/assessments', 'Assessments')}
-            {navLink('/certifications', 'Certifications')}
-            {navLink('/profile-settings', 'Settings')}
-          </>
-        )}
 
-        <NotificationBell />
+      {/* MAIN CONTENT */}
+      <div style={{ flex: 1, padding: "30px" }}>
 
-        <button onClick={() => {
-          localStorage.clear();
-          window.location.href = '/';
+        {/* TOP BAR */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "20px"
         }}>
-          Logout
-        </button>
+          <input
+            placeholder="Search postings..."
+            style={{
+              padding: "10px",
+              width: "300px",
+              borderRadius: "6px",
+              border: "1px solid #ddd"
+            }}
+          />
+
+          <div>
+            🔔 ⚙️ 👤
+          </div>
+        </div>
+
+
+        <h2>Job Approval Queue</h2>
+        <p>{filteredJobs.length} postings pending manual review</p>
+
+
+        {/* TABS */}
+        <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+          {["Pending", "Approved", "Rejected"].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                marginRight: "10px",
+                padding: "8px 16px",
+                borderRadius: "20px",
+                border: "none",
+                background: activeTab === tab ? "#2563eb" : "#e5e7eb",
+                color: activeTab === tab ? "#fff" : "#000"
+              }}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+
+        <div style={{ display: "flex", gap: "20px" }}>
+
+          {/* JOB TABLE */}
+          <div style={{ flex: 2 }}>
+
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse"
+              }}
+            >
+              <thead>
+                <tr style={{ background: "#f1f5f9" }}>
+                  <th>Job Posting</th>
+                  <th>Company</th>
+                  <th>Submitted</th>
+                  <th>Priority</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                {filteredJobs.map(job => (
+                  <tr
+                    key={job.id}
+                    style={{ borderBottom: "1px solid #ddd", cursor: "pointer" }}
+                    onClick={() => setSelectedJob(job)}
+                  >
+                    <td>{job.title}</td>
+                    <td>{job.company}</td>
+                    <td>{job.submitted}</td>
+                    <td>{job.priority}</td>
+
+                    <td>
+                      {job.status === "Pending" && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              approveJob(job.id);
+                            }}
+                            style={{
+                              background: "green",
+                              color: "#fff",
+                              border: "none",
+                              padding: "5px 10px",
+                              marginRight: "5px"
+                            }}
+                          >
+                            Approve
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              rejectJob(job.id);
+                            }}
+                            style={{
+                              background: "red",
+                              color: "#fff",
+                              border: "none",
+                              padding: "5px 10px"
+                            }}
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </td>
+
+                  </tr>
+                ))}
+
+              </tbody>
+            </table>
+
+          </div>
+
+
+          {/* RIGHT PANEL */}
+          <div style={{
+            flex: 1,
+            border: "1px solid #ddd",
+            padding: "20px",
+            borderRadius: "8px"
+          }}>
+
+            <h4>Internal Note / Rejection Reason</h4>
+
+            {selectedJob ? (
+              <>
+                <p><b>{selectedJob.title}</b></p>
+
+                <textarea
+                  placeholder="Explain rejection or leave a note..."
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  style={{
+                    width: "100%",
+                    height: "120px",
+                    marginTop: "10px"
+                  }}
+                />
+              </>
+            ) : (
+              <p>Select a job to review</p>
+            )}
+
+          </div>
+
+        </div>
+
       </div>
-    </nav>
-  );
-}
-
-// ─────────────────────────────────────────
-// MAIN APP
-// ─────────────────────────────────────────
-export default function App() {
-  return (
-    <Router>
-      <Navbar />
-
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/register" element={<CandidateRegistration />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/otp-verification" element={<OtpVerification />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-
-        <Route path="/candidate-dashboard" element={<PrivateRoute><CandidateDashboard /></PrivateRoute>} />
-        <Route path="/candidate-profile" element={<PrivateRoute><CandidateProfile /></PrivateRoute>} />
-        <Route path="/profile-settings" element={<PrivateRoute><ProfileSettings /></PrivateRoute>} />
-
-        <Route path="/company-dashboard" element={<PrivateRoute><CompanyDashboard /></PrivateRoute>} />
-        <Route path="/employer/register" element={<EmployerRegistration />} />
-        <Route path="/employer/post-job" element={<PrivateRoute><EmployerPostJob /></PrivateRoute>} />
-        <Route path="/employer/candidates" element={<PrivateRoute><EmployerCandidates /></PrivateRoute>} />
-        <Route path="/employer/profile" element={<PrivateRoute><EmployerProfile /></PrivateRoute>} />
-
-        <Route path="/jobs" element={<PrivateRoute><Jobs /></PrivateRoute>} />
-        <Route path="/saved-jobs" element={<PrivateRoute><SavedJobs /></PrivateRoute>} />
-
-        <Route path="/resumes" element={<PrivateRoute><ResumeUpload /></PrivateRoute>} />
-        <Route path="/candidates/resumes" element={<PrivateRoute><CandidateResumes /></PrivateRoute>} />
-
-        <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
-        <Route path="/assessments" element={<PrivateRoute><OnlineAssessmentTest /></PrivateRoute>} />
-
-        {/* ✅ YOUR FEATURE */}
-        <Route path="/certifications" element={
-          <PrivateRoute>
-            <CertificationTracking />
-          </PrivateRoute>
-        } />
-
-      </Routes>
-    </Router>
+    </div>
   );
 }
